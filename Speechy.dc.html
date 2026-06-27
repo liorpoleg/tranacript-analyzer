@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Plus Jakarta Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:#f4f5f8}
+i.ph,i[class^="ph-"],i[class*=" ph-"]{display:inline-flex;line-height:1}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.08)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes toastIn{from{transform:translateX(24px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes dotpulse{0%,80%,100%{opacity:.2;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:rgba(130,130,140,.32);border-radius:9px;border:3px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:rgba(130,130,140,.5);background-clip:content-box}
+</style>
+</helmet>
+
+<div ref="{{ rootRef }}" style="min-height:100vh;background:var(--bg,#f4f5f8);color:var(--tx,#191c24);font-family:'Plus Jakarta Sans',system-ui,sans-serif;transition:background .3s ease,color .3s ease">
+
+<!-- ============ NAVBAR ============ -->
+<header style="position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:22px;height:66px;padding:0 26px;background:var(--surf,#fff);border-bottom:1px solid var(--bd,#e3e6ec);transition:background .3s,border-color .3s">
+  <div onClick="{{ goDashboard }}" style="display:flex;align-items:center;gap:11px;cursor:pointer;user-select:none">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <rect x="3" y="4" width="26" height="20" rx="9" fill="var(--ac,#6366f1)"></rect>
+      <path d="M10.5 22 L10.5 29 L17.5 22 Z" fill="var(--ac,#6366f1)"></path>
+      <g style="transform-box:fill-box;transform-origin:center;animation:blink 5s infinite">
+        <circle cx="12.4" cy="13" r="2.15" fill="#fff"></circle>
+        <circle cx="19.6" cy="13" r="2.15" fill="#fff"></circle>
+      </g>
+      <path d="M12 17.4 Q16 20.6 20 17.4" stroke="#fff" stroke-width="1.9" stroke-linecap="round" fill="none"></path>
+    </svg>
+    <span style="font-family:'Baloo 2',cursive;font-weight:800;font-size:23px;color:var(--tx,#191c24);letter-spacing:-.01em">Speechy</span>
+  </div>
+
+  <nav style="display:flex;gap:3px;margin-left:6px">
+    <sc-for list="{{ navVM }}" as="n" hint-placeholder-count="3">
+      <button onClick="{{ n.go }}" style="{{ n.style }}"><i class="ph {{ n.icon }}" style="font-size:17px"></i>{{ n.label }}</button>
+    </sc-for>
+  </nav>
+
+  <div style="flex:1"></div>
+
+  <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:12px;background:var(--surf2,#eceef3)">
+    <sc-for list="{{ accentsVM }}" as="a" hint-placeholder-count="5">
+      <div onClick="{{ a.select }}" title="{{ a.key }}" style="{{ a.style }}"></div>
+    </sc-for>
+  </div>
+
+  <button onClick="{{ toggleMode }}" title="Toggle theme" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:11px;border:1px solid var(--bd,#e3e6ec);background:var(--surf,#fff);color:var(--tx,#191c24);cursor:pointer">
+    <i class="ph {{ modeIcon }}" style="font-size:19px"></i>
+  </button>
+
+  <div onClick="{{ userMenu }}" style="display:flex;align-items:center;gap:10px;padding:5px 11px 5px 5px;border-radius:12px;border:1px solid var(--bd,#e3e6ec);cursor:pointer;background:var(--surf,#fff)">
+    <span style="width:32px;height:32px;border-radius:9px;background:var(--ac,#6366f1);color:var(--act,#fff);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">MK</span>
+    <div style="line-height:1.15">
+      <div style="font-size:13px;font-weight:700;color:var(--tx,#191c24)">Maya Kessler</div>
+      <div style="font-size:11px;color:var(--tx3,#9aa1ae)">Manager</div>
+    </div>
+    <i class="ph ph-caret-down" style="font-size:13px;color:var(--tx3,#9aa1ae)"></i>
+  </div>
+</header>
+
+<!-- ============ DASHBOARD ============ -->
+<sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+<main style="padding:36px 40px 60px;max-width:1260px;margin:0 auto">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:28px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--ac,#6366f1);margin-bottom:7px;letter-spacing:.07em;text-transform:uppercase">Workspace · {{ orgName }}</div>
+      <h1 style="margin:0;font-size:29px;font-weight:800;letter-spacing:-.025em;color:var(--tx,#191c24)">Good evening, Maya</h1>
+      <p style="margin:7px 0 0;color:var(--tx2,#5f6675);font-size:15px">Here's what's moving across your shows today.</p>
+    </div>
+    <button onClick="{{ newShow }}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:12px;border:none;background:var(--ac,#6366f1);color:var(--act,#fff);font-size:14.5px;font-weight:700;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.1)"><i class="ph ph-plus" style="font-size:17px"></i>New TV Show</button>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px">
+    <sc-for list="{{ stats }}" as="st" hint-placeholder-count="4">
+      <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:16px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;font-weight:600;color:var(--tx2,#5f6675)">{{ st.label }}</span>
+          <span style="width:32px;height:32px;border-radius:10px;background:var(--acw,#eef0ff);color:var(--ac,#6366f1);display:flex;align-items:center;justify-content:center"><i class="ph {{ st.icon }}" style="font-size:17px"></i></span>
+        </div>
+        <span style="font-family:'Baloo 2',sans-serif;font-size:32px;font-weight:800;color:var(--tx,#191c24);line-height:.9">{{ st.value }}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:20px;align-items:start">
+    <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:18px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));padding:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px">
+        <h2 style="margin:0;font-size:16px;font-weight:700;color:var(--tx,#191c24)">Your TV Shows</h2>
+        <button onClick="{{ goShows }}" style="display:flex;align-items:center;gap:4px;border:none;background:transparent;color:var(--ac,#6366f1);font-size:13px;font-weight:700;cursor:pointer">View all<i class="ph ph-caret-right" style="font-size:13px"></i></button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 8px 8px">
+        <sc-for list="{{ showsVM }}" as="sh" hint-placeholder-count="4">
+          <div onClick="{{ sh.open }}" style="display:flex;gap:13px;padding:13px;border-radius:14px;cursor:pointer;border:1px solid var(--bd,#e3e6ec);transition:transform .12s,box-shadow .12s" style-hover="transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.08)">
+            <div style="{{ sh.thumb }};width:46px;height:46px;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;font-family:'Baloo 2',sans-serif">{{ sh.init }}</div>
+            <div style="min-width:0">
+              <div style="font-size:14.5px;font-weight:700;color:var(--tx,#191c24);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sh.name }}</div>
+              <div style="font-size:12px;color:var(--tx2,#5f6675);margin-top:3px">{{ sh.epCount }} episodes</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:18px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));padding:8px">
+      <h2 style="margin:0;padding:14px 16px 10px;font-size:16px;font-weight:700;color:var(--tx,#191c24)">Recent Activity</h2>
+      <div style="display:flex;flex-direction:column">
+        <sc-for list="{{ activityVM }}" as="ac" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px" style-hover="background:var(--surf2,#eceef3)">
+            <span style="width:34px;height:34px;border-radius:10px;flex:none;background:var(--surf2,#eceef3);color:var(--tx2,#5f6675);display:flex;align-items:center;justify-content:center"><i class="ph {{ ac.icon }}" style="font-size:16px"></i></span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13.5px;font-weight:600;color:var(--tx,#191c24);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ac.ep }}</div>
+              <div style="font-size:11.5px;color:var(--tx3,#9aa1ae);margin-top:2px">{{ ac.type }} · {{ ac.time }}</div>
+            </div>
+            <span style="padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700;background:{{ ac._b.bg }};color:{{ ac._b.fg }}">{{ ac.status }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</main>
+</sc-if>
+
+<!-- ============ TV SHOWS LIST ============ -->
+<sc-if value="{{ isShows }}" hint-placeholder-val="{{ false }}">
+<main style="padding:36px 40px 60px;max-width:1260px;margin:0 auto">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:26px;flex-wrap:wrap">
+    <div>
+      <h1 style="margin:0;font-size:27px;font-weight:800;letter-spacing:-.02em;color:var(--tx,#191c24)">TV Shows</h1>
+      <p style="margin:7px 0 0;color:var(--tx2,#5f6675);font-size:15px">Every series in your workspace.</p>
+    </div>
+    <button onClick="{{ newShow }}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:12px;border:none;background:var(--ac,#6366f1);color:var(--act,#fff);font-size:14.5px;font-weight:700;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.1)"><i class="ph ph-plus" style="font-size:17px"></i>New TV Show</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
+    <sc-for list="{{ showsVM }}" as="sh" hint-placeholder-count="6">
+      <div onClick="{{ sh.open }}" style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:18px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));overflow:hidden;cursor:pointer;transition:transform .14s,box-shadow .14s" style-hover="transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.1)">
+        <div style="{{ sh.thumb }};height:96px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:30px;font-family:'Baloo 2',sans-serif;letter-spacing:.02em">{{ sh.init }}</div>
+        <div style="padding:18px 20px">
+          <div style="font-size:17px;font-weight:700;color:var(--tx,#191c24)">{{ sh.name }}</div>
+          <p style="margin:7px 0 0;font-size:13.5px;line-height:1.5;color:var(--tx2,#5f6675);min-height:40px">{{ sh.desc }}</p>
+          <div style="display:flex;align-items:center;gap:14px;margin-top:16px;padding-top:14px;border-top:1px solid var(--bd,#e3e6ec);font-size:12.5px;color:var(--tx3,#9aa1ae)">
+            <span style="display:flex;align-items:center;gap:5px"><i class="ph ph-film-slate" style="font-size:14px"></i>{{ sh.epCount }} episodes</span>
+            <span style="display:flex;align-items:center;gap:5px"><i class="ph ph-buildings" style="font-size:14px"></i>{{ sh.org }}</span>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</main>
+</sc-if>
+
+<!-- ============ TV SHOW DETAIL ============ -->
+<sc-if value="{{ isShowDetail }}" hint-placeholder-val="{{ false }}">
+<main style="padding:30px 40px 60px;max-width:1180px;margin:0 auto">
+  <button onClick="{{ goShows }}" style="display:inline-flex;align-items:center;gap:7px;border:none;background:transparent;color:var(--tx2,#5f6675);font-size:13.5px;font-weight:600;cursor:pointer;margin-bottom:18px"><i class="ph ph-arrow-left" style="font-size:16px"></i>All TV Shows</button>
+  <div style="display:flex;gap:20px;align-items:center;margin-bottom:26px">
+    <div style="{{ currentShowThumb }};width:84px;height:84px;border-radius:20px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:28px;font-family:'Baloo 2',sans-serif">{{ currentShowInit }}</div>
+    <div style="flex:1">
+      <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em;color:var(--tx,#191c24)">{{ currentShowName }}</h1>
+      <p style="margin:6px 0 0;font-size:14.5px;color:var(--tx2,#5f6675);max-width:560px;line-height:1.5">{{ currentShowDesc }}</p>
+      <div style="display:flex;gap:16px;margin-top:12px;font-size:13px;color:var(--tx3,#9aa1ae)">
+        <span style="display:flex;align-items:center;gap:5px"><i class="ph ph-film-slate" style="font-size:15px"></i>{{ currentShowEpCount }} episodes</span>
+        <span style="display:flex;align-items:center;gap:5px"><i class="ph ph-buildings" style="font-size:15px"></i>{{ currentShowOrg }}</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:9px">
+      <button onClick="{{ editShow }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 15px;border-radius:11px;border:1px solid var(--bd,#e3e6ec);background:var(--surf,#fff);color:var(--tx,#191c24);font-size:13.5px;font-weight:600;cursor:pointer"><i class="ph ph-pencil-simple" style="font-size:15px"></i>Edit</button>
+      <button onClick="{{ editShow }}" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:11px;border:1px solid var(--bd,#e3e6ec);background:var(--surf,#fff);color:#dc2626;cursor:pointer"><i class="ph ph-trash" style="font-size:16px"></i></button>
+    </div>
+  </div>
+
+  <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:18px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));overflow:hidden">
+    <div style="display:grid;grid-template-columns:64px 1fr 130px 90px 130px 44px;gap:0;padding:13px 20px;background:var(--surf2,#eceef3);font-size:11.5px;font-weight:700;color:var(--tx3,#9aa1ae);text-transform:uppercase;letter-spacing:.05em">
+      <span>Ep</span><span>Title</span><span>Language</span><span>Scenes</span><span>Status</span><span></span>
+    </div>
+    <sc-for list="{{ episodesVM }}" as="ep" hint-placeholder-count="8">
+      <div onClick="{{ ep.open }}" style="display:grid;grid-template-columns:64px 1fr 130px 90px 130px 44px;align-items:center;gap:0;padding:14px 20px;border-top:1px solid var(--bd,#e3e6ec);cursor:pointer" style-hover="background:var(--surf2,#eceef3)">
+        <span style="font-size:13px;font-weight:700;color:var(--tx3,#9aa1ae);font-family:'JetBrains Mono',monospace">{{ ep.n }}</span>
+        <span style="font-size:14.5px;font-weight:600;color:var(--tx,#191c24)">{{ ep.title }}</span>
+        <span style="font-size:13.5px;color:var(--tx2,#5f6675)">{{ ep.lang }}</span>
+        <span style="font-size:13.5px;color:var(--tx2,#5f6675);font-family:'JetBrains Mono',monospace">{{ ep.scenes }}</span>
+        <span><span style="padding:4px 11px;border-radius:99px;font-size:11px;font-weight:700;background:{{ ep._b.bg }};color:{{ ep._b.fg }}">{{ ep.status }}</span></span>
+        <i class="ph ph-caret-right" style="font-size:15px;color:var(--tx3,#9aa1ae)"></i>
+      </div>
+    </sc-for>
+  </div>
+</main>
+</sc-if>
+
+<!-- ============ EPISODE HUB ============ -->
+<sc-if value="{{ isEpisode }}" hint-placeholder-val="{{ false }}">
+<main style="padding:24px 40px 60px;max-width:1320px;margin:0 auto">
+  <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx3,#9aa1ae);margin-bottom:18px">
+    <span onClick="{{ goDashboard }}" style="cursor:pointer;font-weight:600">Dashboard</span>
+    <i class="ph ph-caret-right" style="font-size:12px"></i>
+    <span onClick="{{ backToShow }}" style="cursor:pointer;font-weight:600;color:var(--tx2,#5f6675)">{{ currentShowName }}</span>
+    <i class="ph ph-caret-right" style="font-size:12px"></i>
+    <span style="font-weight:700;color:var(--tx,#191c24)">{{ currentEpN }} · {{ currentEpTitle }}</span>
+  </div>
+
+  <div style="display:flex;gap:26px;align-items:flex-start">
+    <aside style="width:236px;flex:none;position:sticky;top:90px">
+      <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:16px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));padding:16px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--tx3,#9aa1ae);font-family:'JetBrains Mono',monospace;letter-spacing:.05em">{{ currentEpN }}</div>
+        <div style="font-size:16px;font-weight:700;color:var(--tx,#191c24);margin:5px 0 10px;line-height:1.25">{{ currentEpTitle }}</div>
+        <span style="display:inline-block;padding:4px 11px;border-radius:99px;font-size:11px;font-weight:700;background:{{ currentEpBadge.bg }};color:{{ currentEpBadge.fg }}">{{ currentEpStatus }}</span>
+      </div>
+      <nav style="display:flex;flex-direction:column;gap:3px">
+        <sc-for list="{{ tabsVM }}" as="t" hint-placeholder-count="7">
+          <button onClick="{{ t.select }}" style="{{ t.style }}"><i class="ph {{ t.icon }}" style="font-size:18px"></i>{{ t.label }}</button>
+        </sc-for>
+      </nav>
+    </aside>
+
+    <section style="flex:1;min-width:0">
+
+      <!-- OVERVIEW -->
+      <sc-if value="{{ tabOverview }}" hint-placeholder-val="{{ true }}">
+      <div style="min-height:1px">
+        <h2 style="margin:0 0 16px;font-size:21px;font-weight:800;letter-spacing:-.02em;color:var(--tx,#191c24)">Overview</h2>
+        <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:16px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));padding:22px;margin-bottom:18px">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px 20px">
+            <div><div style="font-size:11.5px;font-weight:700;color:var(--tx3,#9aa1ae);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Language</div><div style="font-size:15px;font-weight:600;color:var(--tx,#191c24)">{{ currentEpLang }}</div></div>
+            <div><div style="font-size:11.5px;font-weight:700;color:var(--tx3,#9aa1ae);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Scenes</div><div style="font-size:15px;font-weight:600;color:var(--tx,#191c24);font-family:'JetBrains Mono',monospace">{{ currentEpScenes }}</div></div>
+            <div><div style="font-size:11.5px;font-weight:700;color:var(--tx3,#9aa1ae);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Created</div><div style="font-size:15px;font-weight:600;color:var(--tx,#191c24)">Jun 18, 2026</div></div>
+            <div><div style="font-size:11.5px;font-weight:700;color:var(--tx3,#9aa1ae);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Smart Context</div><div style="font-size:15px;font-weight:600;color:var(--tx,#191c24)">Enabled</div></div>
+            <div><div style="font-size:11.5px;font-weight:700;color:var(--tx3,#9aa1ae);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Contextual Summaries</div><div style="font-size:15px;font-weight:600;color:var(--tx,#191c24)">Off</div></div>
+            <div><div style="font-size:11.5px;font-weight:700;color:var(--tx3,#9aa1ae);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Last run</div><div style="font-size:15px;font-weight:600;color:var(--tx,#191c24)">2 min ago</div></div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px">
+          <sc-for list="{{ fileCountsVM }}" as="fc" hint-placeholder-count="5">
+            <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:14px;padding:14px;text-align:center">
+              <i class="ph {{ fc.icon }}" style="font-size:20px;color:var(--ac,#6366f1)"></i>
+              <div style="font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:800;color:var(--tx,#191c24);margin-top:6px;line-height:1">{{ fc.count }}</div>
+              <div style="font-size:11px;color:var(--tx3,#9aa1ae);margin-top:3px">{{ fc.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px">
+          <sc-for list="{{ quickActionsVM }}" as="q" hint-placeholder-count="3">
+            <div onClick="{{ q.go }}" style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:16px;padding:20px;cursor:pointer;transition:transform .12s,box-shadow .12s" style-hover="transform:translateY(-3px);box-shadow:0 12px 26px rgba(0,0,0,.09)">
+              <span style="width:42px;height:42px;border-radius:12px;background:var(--acw,#eef0ff);color:var(--ac,#6366f1);display:flex;align-items:center;justify-content:center"><i class="ph {{ q.icon }}" style="font-size:21px"></i></span>
+              <div style="font-size:15.5px;font-weight:700;color:var(--tx,#191c24);margin-top:13px">{{ q.label }}</div>
+              <div style="font-size:12.5px;color:var(--tx2,#5f6675);margin-top:4px;line-height:1.4">{{ q.desc }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:16px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));padding:8px">
+          <h3 style="margin:0;padding:12px 14px 8px;font-size:14px;font-weight:700;color:var(--tx,#191c24)">Recent Runs</h3>
+          <sc-for list="{{ recentRunsVM }}" as="r" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:11px" style-hover="background:var(--surf2,#eceef3)">
+              <span style="width:32px;height:32px;border-radius:9px;flex:none;background:var(--surf2,#eceef3);color:var(--tx2,#5f6675);display:flex;align-items:center;justify-content:center"><i class="ph {{ r.icon }}" style="font-size:15px"></i></span>
+              <div style="flex:1"><div style="font-size:13.5px;font-weight:600;color:var(--tx,#191c24)">{{ r.type }}</div><div style="font-size:11.5px;color:var(--tx3,#9aa1ae)">{{ r.time }}</div></div>
+              <span style="padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700;background:{{ r._b.bg }};color:{{ r._b.fg }}">{{ r.status }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- TRANSLATE -->
+      <sc-if value="{{ tabTranslate }}" hint-placeholder-val="{{ false }}">
+      <div style="min-height:1px">
+        <h2 style="margin:0 0 16px;font-size:21px;font-weight:800;letter-spacing:-.02em;color:var(--tx,#191c24)">Translate Episode</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start">
+          <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:16px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));padding:22px">
+            <div style="font-size:13px;font-weight:700;color:var(--tx,#191c24);margin-bottom:8px">Upload transcript</div>
+            <div onClick="{{ upload }}" style="border:2px dashed var(--bd,#e3e6ec);border-radius:14px;padding:34px 20px;text-align:center;cursor:pointer;background:var(--surf2,#eceef3)" style-hover="border-color:var(--ac,#6366f1)">
+              <i class="ph ph-cloud-arrow-up" style="font-size:34px;color:var(--ac,#6366f1)"></i>
+              <div style="font-size:14px;font-weight:700;color:var(--tx,#191c24);margin-top:10px">Drop your Excel here</div>
+              <div style="font-size:12.5px;color:var(--tx3,#9aa1ae);margin-top:4px">or click to browse · .xlsx, .xls</div>
+            </div>
+            <div style="font-size:13px;font-weight:700;color:var(--tx,#191c24);margin:22px 0 9px">Target language</div>
+            <div style="display:flex;gap:9px">
+              <sc-for list="{{ transLangVM }}" as="l" hint-placeholder-count="2">
+                <button onClick="{{ l.select }}" style="{{ l.style }}">{{ l.label }}</button>
+              </sc-for>
+            </div>
+            <button onClick="{{ startTranslate }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:22px;padding:13px;border-radius:12px;border:none;background:var(--ac,#6366f1);color:var(--act,#fff);font-size:14.5px;font-weight:700;cursor:pointer"><i class="ph ph-play" style="font-size:16px"></i>Start Translation</button>
+            <p style="margin:13px 0 0;font-size:12px;color:var(--tx3,#9aa1ae);line-height:1.5">Incremental — existing scenes are skipped, only new scenes are translated.</p>
+          </div>
+
+          <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:16px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));padding:8px">
+            <h3 style="margin:0;padding:14px 14px 10px;font-size:14px;font-weight:700;color:var(--tx,#191c24)">Translation history</h3>
+            <sc-for list="{{ translationsVM }}" as="t" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:1px solid var(--bd,#e3e6ec)">
+                <span style="width:34px;height:34px;border-radius:9px;flex:none;background:#1d6f42;color:#fff;display:flex;align-items:center;justify-content:center"><i class="ph ph-microsoft-excel-logo" style="font-size:17px"></i></span>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:var(--tx,#191c24);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.file }}</div>
+                  <div style="font-size:11.5px;color:var(--tx3,#9aa1ae);margin-top:2px">{{ t.lang }} · {{ t.scenes }} scenes · {{ t.date }}</div>
+                </div>
+                <span style="padding:4px 9px;border-radius:99px;font-size:10.5px;font-weight:700;background:{{ t._b.bg }};color:{{ t._b.fg }}">{{ t.status }}</span>
+                <button onClick="{{ download }}" style="width:32px;height:32px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid var(--bd,#e3e6ec);background:var(--surf,#fff);color:var(--tx2,#5f6675);cursor:pointer"><i class="ph ph-download-simple" style="font-size:15px"></i></button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- QUESTIONS -->
+      <sc-if value="{{ tabQuestions }}" hint-placeholder-val="{{ false }}">
+      <div style="min-height:1px">
+        <h2 style="margin:0 0 16px;font-size:21px;font-weight:800;letter-spacing:-.02em;color:var(--tx,#191c24)">Research Questions</h2>
+        <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:start">
+          <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:16px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));padding:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px 10px">
+              <h3 style="margin:0;font-size:14px;font-weight:700;color:var(--tx,#191c24)">Saved questions</h3>
+              <button onClick="{{ addQ }}" style="display:flex;align-items:center;gap:5px;padding:7px 12px;border-radius:9px;border:none;background:var(--acw,#eef0ff);color:var(--ac,#6366f1);font-size:12.5px;font-weight:700;cursor:pointer"><i class="ph ph-plus" style="font-size:14px"></i>Add</button>
+            </div>
+            <sc-for list="{{ questionsVM }}" as="q" hint-placeholder-count="5">
+              <div style="display:flex;gap:11px;align-items:flex-start;padding:12px 14px;border-top:1px solid var(--bd,#e3e6ec)">
+                <span style="width:24px;height:24px;border-radius:7px;flex:none;background:var(--acw,#eef0ff);color:var(--ac,#6366f1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;font-family:'JetBrains Mono',monospace">{{ q.num }}</span>
+                <div style="flex:1;font-size:13.5px;line-height:1.5;color:var(--tx,#191c24)">{{ q.text }}</div>
+                <button onClick="{{ q.del }}" style="width:28px;height:28px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:8px;border:none;background:transparent;color:var(--tx3,#9aa1ae);cursor:pointer" style-hover="color:#dc2626;background:var(--surf2,#eceef3)"><i class="ph ph-trash" style="font-size:15px"></i></button>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:16px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));padding:18px">
+            <h3 style="margin:0 0 6px;font-size:14px;font-weight:700;color:var(--tx,#191c24)">Background Knowledge</h3>
+            <p style="margin:0 0 14px;font-size:12.5px;color:var(--tx2,#5f6675);line-height:1.5">Reference files the model draws on when generating reports.</p>
+            <div onClick="{{ upload }}" style="border:2px dashed var(--bd,#e3e6ec);border-radius:13px;padding:20px;text-align:center;cursor:pointer;background:var(--surf2,#eceef3);margin-bottom:14px" style-hover="border-color:var(--ac,#6366f1)">
+              <i class="ph ph-cloud-arrow-up" style="font-size:24px;color:var(--ac,#6366f1)"></i>
+              <div style="font-size:12.5px;font-weight:600;color:var(--tx2,#5f6675);margin-top:6px">Drop files · .txt .md .docx .csv</div>
+            </div>
+            <sc-for list="{{ knowledgeVM }}" as="k" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-top:1px solid var(--bd,#e3e6ec)">
+                <i class="ph {{ k.icon }}" style="font-size:20px;color:var(--tx2,#5f6675)"></i>
+                <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--tx,#191c24);font-family:'JetBrains Mono',monospace">{{ k.name }}</div></div>
+                <span style="font-size:11.5px;color:var(--tx3,#9aa1ae);font-family:'JetBrains Mono',monospace">{{ k.size }}</span>
+                <button onClick="{{ download }}" style="width:28px;height:28px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:8px;border:none;background:transparent;color:var(--tx3,#9aa1ae);cursor:pointer" style-hover="color:#dc2626"><i class="ph ph-trash" style="font-size:14px"></i></button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- SUMMARY / REPORTS -->
+      <sc-if value="{{ tabSummary }}" hint-placeholder-val="{{ false }}">
+      <div style="min-height:1px">
+        <h2 style="margin:0 0 16px;font-size:21px;font-weight:800;letter-spacing:-.02em;color:var(--tx,#191c24)">Generate Report</h2>
+        <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:18px;align-items:start">
+          <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:16px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));padding:22px">
+            <div style="font-size:12.5px;font-weight:700;color:var(--tx,#191c24);margin-bottom:9px">Episodes to include</div>
+            <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:20px">
+              <sc-for list="{{ sumEpsVM }}" as="e" hint-placeholder-count="4">
+                <div onClick="{{ e.toggle }}" style="display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:9px;cursor:pointer" style-hover="background:var(--surf2,#eceef3)">
+                  <div style="{{ e.checkStyle }}"><sc-if value="{{ e.checked }}" hint-placeholder-val="{{ false }}"><i class="ph ph-check ph-bold" style="font-size:12px"></i></sc-if></div>
+                  <span style="font-size:13.5px;font-weight:600;color:var(--tx,#191c24);font-family:'JetBrains Mono',monospace">{{ e.n }}</span>
+                  <span style="font-size:13.5px;color:var(--tx2,#5f6675)">{{ e.title }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+              <div><div style="font-size:12.5px;font-weight:700;color:var(--tx,#191c24);margin-bottom:7px">Date from</div><input type="text" placeholder="Optional" value="{{ dateFrom }}" onChange="{{ onDateFrom }}" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--bd,#e3e6ec);background:var(--surf2,#eceef3);color:var(--tx,#191c24);font-size:13.5px;font-family:inherit"></div>
+              <div><div style="font-size:12.5px;font-weight:700;color:var(--tx,#191c24);margin-bottom:7px">Date to</div><input type="text" placeholder="Optional" value="{{ dateTo }}" onChange="{{ onDateTo }}" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--bd,#e3e6ec);background:var(--surf2,#eceef3);color:var(--tx,#191c24);font-size:13.5px;font-family:inherit"></div>
+            </div>
+
+            <div style="font-size:12.5px;font-weight:700;color:var(--tx,#191c24);margin-bottom:9px">Background knowledge</div>
+            <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:20px">
+              <sc-for list="{{ sumKnowVM }}" as="k" hint-placeholder-count="3">
+                <div onClick="{{ k.toggle }}" style="display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:9px;cursor:pointer" style-hover="background:var(--surf2,#eceef3)">
+                  <div style="{{ k.checkStyle }}"><sc-if value="{{ k.checked }}" hint-placeholder-val="{{ false }}"><i class="ph ph-check ph-bold" style="font-size:12px"></i></sc-if></div>
+                  <i class="ph {{ k.icon }}" style="font-size:16px;color:var(--tx2,#5f6675)"></i>
+                  <span style="font-size:13px;color:var(--tx,#191c24);font-family:'JetBrains Mono',monospace">{{ k.name }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="font-size:12.5px;font-weight:700;color:var(--tx,#191c24);margin-bottom:9px">Research questions</div>
+            <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:20px">
+              <sc-for list="{{ sumQVM }}" as="q" hint-placeholder-count="5">
+                <div onClick="{{ q.toggle }}" style="display:flex;align-items:flex-start;gap:11px;padding:8px 10px;border-radius:9px;cursor:pointer" style-hover="background:var(--surf2,#eceef3)">
+                  <div style="{{ q.checkStyle }}"><sc-if value="{{ q.checked }}" hint-placeholder-val="{{ false }}"><i class="ph ph-check ph-bold" style="font-size:12px"></i></sc-if></div>
+                  <span style="font-size:13px;line-height:1.45;color:var(--tx,#191c24)">{{ q.text }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="font-size:12.5px;font-weight:700;color:var(--tx,#191c24);margin-bottom:7px">Custom one-off questions</div>
+            <textarea placeholder="Add extra questions for this report only — one per line. Not saved." value="{{ customQ }}" onChange="{{ onCustomQ }}" style="width:100%;min-height:72px;padding:11px 13px;border-radius:11px;border:1px solid var(--bd,#e3e6ec);background:var(--surf2,#eceef3);color:var(--tx,#191c24);font-size:13.5px;font-family:inherit;resize:vertical;line-height:1.5"></textarea>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin:20px 0;padding:14px 16px;border-radius:12px;background:var(--acw,#eef0ff)">
+              <div style="display:flex;align-items:center;gap:10px"><i class="ph ph-sparkle ph-fill" style="font-size:18px;color:var(--ac,#6366f1)"></i><div><div style="font-size:13.5px;font-weight:700;color:var(--tx,#191c24)">Smart Context</div><div style="font-size:11.5px;color:var(--tx2,#5f6675)">Similarity search picks only relevant scenes</div></div></div>
+              <div onClick="{{ tgSumSmart.toggle }}" style="{{ tgSumSmart.track }}"><div style="{{ tgSumSmart.knob }}"></div></div>
+            </div>
+
+            <button onClick="{{ generateReport }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border-radius:12px;border:none;background:var(--ac,#6366f1);color:var(--act,#fff);font-size:14.5px;font-weight:700;cursor:pointer"><i class="ph ph-file-text" style="font-size:17px"></i>Generate Report</button>
+          </div>
+
+          <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:16px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));padding:8px">
+            <h3 style="margin:0;padding:14px 14px 10px;font-size:14px;font-weight:700;color:var(--tx,#191c24)">Generated reports</h3>
+            <sc-for list="{{ reportsVM }}" as="r" hint-placeholder-count="1">
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-top:1px solid var(--bd,#e3e6ec)">
+                <span style="width:36px;height:36px;border-radius:9px;flex:none;background:#2b579a;color:#fff;display:flex;align-items:center;justify-content:center"><i class="ph ph-file-doc" style="font-size:18px"></i></span>
+                <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--tx,#191c24);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</div><div style="font-size:11.5px;color:var(--tx3,#9aa1ae);margin-top:2px">{{ r.date }} · {{ r.size }}</div></div>
+                <button onClick="{{ download }}" style="width:32px;height:32px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid var(--bd,#e3e6ec);background:var(--surf,#fff);color:var(--tx2,#5f6675);cursor:pointer"><i class="ph ph-download-simple" style="font-size:15px"></i></button>
+                <button onClick="{{ download }}" style="width:32px;height:32px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid var(--bd,#e3e6ec);background:var(--surf,#fff);color:#dc2626;cursor:pointer"><i class="ph ph-trash" style="font-size:15px"></i></button>
+              </div>
+            </sc-for>
+            <div style="padding:20px 14px;text-align:center;color:var(--tx3,#9aa1ae);font-size:12.5px;border-top:1px solid var(--bd,#e3e6ec)">Reports answer every selected question with evidence citations from the transcripts.</div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- CHAT -->
+      <sc-if value="{{ tabChat }}" hint-placeholder-val="{{ false }}">
+      <div style="min-height:1px">
+        <h2 style="margin:0 0 16px;font-size:21px;font-weight:800;letter-spacing:-.02em;color:var(--tx,#191c24)">Interactive Q&amp;A</h2>
+        <div style="display:grid;grid-template-columns:.85fr 1.4fr;gap:18px;align-items:start">
+          <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:16px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));padding:18px">
+            <h3 style="margin:0 0 4px;font-size:14px;font-weight:700;color:var(--tx,#191c24)">Context</h3>
+            <p style="margin:0 0 14px;font-size:12px;color:var(--tx3,#9aa1ae);line-height:1.5">Stateless — history isn't saved between refreshes.</p>
+            <div style="font-size:12px;font-weight:700;color:var(--tx2,#5f6675);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Episodes</div>
+            <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:16px">
+              <sc-for list="{{ sumEpsVM }}" as="e" hint-placeholder-count="4">
+                <div onClick="{{ e.toggle }}" style="display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;cursor:pointer" style-hover="background:var(--surf2,#eceef3)">
+                  <div style="{{ e.checkStyle }}"><sc-if value="{{ e.checked }}" hint-placeholder-val="{{ false }}"><i class="ph ph-check ph-bold" style="font-size:11px"></i></sc-if></div>
+                  <span style="font-size:12.5px;font-weight:600;color:var(--tx,#191c24);font-family:'JetBrains Mono',monospace">{{ e.n }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-size:12px;font-weight:700;color:var(--tx2,#5f6675);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Background files</div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <sc-for list="{{ sumKnowVM }}" as="k" hint-placeholder-count="3">
+                <div onClick="{{ k.toggle }}" style="display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;cursor:pointer" style-hover="background:var(--surf2,#eceef3)">
+                  <div style="{{ k.checkStyle }}"><sc-if value="{{ k.checked }}" hint-placeholder-val="{{ false }}"><i class="ph ph-check ph-bold" style="font-size:11px"></i></sc-if></div>
+                  <span style="font-size:12px;color:var(--tx,#191c24);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ k.name }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:16px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));display:flex;flex-direction:column;height:560px">
+            <div style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px">
+              <sc-for list="{{ messagesVM }}" as="m" hint-placeholder-count="1">
+                <div style="{{ m.rowStyle }}">
+                  <div style="{{ m.bubbleStyle }}">
+                    {{ m.text }}
+                    <sc-if value="{{ m.hasCites }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+                        <sc-for list="{{ m.cites }}" as="c" hint-placeholder-count="2">
+                          <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);font-size:11px;font-weight:600;color:var(--tx2,#5f6675);font-family:'JetBrains Mono',monospace"><i class="ph ph-quotes" style="font-size:11px;color:var(--ac,#6366f1)"></i>{{ c.label }}</span>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ thinking }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;justify-content:flex-start">
+                  <div style="padding:13px 16px;border-radius:16px 16px 16px 4px;background:var(--surf2,#eceef3);border:1px solid var(--bd,#e3e6ec);display:flex;align-items:center;gap:5px">
+                    <span style="width:7px;height:7px;border-radius:50%;background:var(--ac,#6366f1);animation:dotpulse 1.2s infinite"></span>
+                    <span style="width:7px;height:7px;border-radius:50%;background:var(--ac,#6366f1);animation:dotpulse 1.2s infinite .2s"></span>
+                    <span style="width:7px;height:7px;border-radius:50%;background:var(--ac,#6366f1);animation:dotpulse 1.2s infinite .4s"></span>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+            <div style="display:flex;gap:10px;padding:14px;border-top:1px solid var(--bd,#e3e6ec)">
+              <input type="text" placeholder="Ask anything about the script…" value="{{ chatInput }}" onChange="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" style="flex:1;padding:12px 15px;border-radius:12px;border:1px solid var(--bd,#e3e6ec);background:var(--surf2,#eceef3);color:var(--tx,#191c24);font-size:14px;font-family:inherit;outline:none">
+              <button onClick="{{ send }}" style="width:46px;height:46px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:12px;border:none;background:var(--ac,#6366f1);color:var(--act,#fff);cursor:pointer"><i class="ph ph-paper-plane-right ph-fill" style="font-size:18px"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- FILES -->
+      <sc-if value="{{ tabFiles }}" hint-placeholder-val="{{ false }}">
+      <div style="min-height:1px">
+        <h2 style="margin:0 0 16px;font-size:21px;font-weight:800;letter-spacing:-.02em;color:var(--tx,#191c24)">Files</h2>
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+          <sc-for list="{{ foldersVM }}" as="f" hint-placeholder-count="5">
+            <button onClick="{{ f.select }}" style="{{ f.style }}"><i class="ph ph-folder ph-fill" style="font-size:15px"></i>{{ f.label }}<span style="opacity:.6;font-size:11px">{{ f.count }}</span></button>
+          </sc-for>
+        </div>
+        <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:16px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));overflow:hidden">
+          <div style="display:grid;grid-template-columns:1fr 110px 120px 80px;gap:0;padding:12px 20px;background:var(--surf2,#eceef3);font-size:11px;font-weight:700;color:var(--tx3,#9aa1ae);text-transform:uppercase;letter-spacing:.05em"><span>Name</span><span>Size</span><span>Modified</span><span></span></div>
+          <sc-for list="{{ currentFilesVM }}" as="f" hint-placeholder-count="2">
+            <div style="display:grid;grid-template-columns:1fr 110px 120px 80px;align-items:center;gap:0;padding:13px 20px;border-top:1px solid var(--bd,#e3e6ec)">
+              <span style="display:flex;align-items:center;gap:11px;font-size:13.5px;font-weight:600;color:var(--tx,#191c24);font-family:'JetBrains Mono',monospace"><i class="ph {{ f.icon }}" style="font-size:19px;color:var(--tx2,#5f6675)"></i>{{ f.name }}</span>
+              <span style="font-size:12.5px;color:var(--tx2,#5f6675);font-family:'JetBrains Mono',monospace">{{ f.size }}</span>
+              <span style="font-size:12.5px;color:var(--tx2,#5f6675)">{{ f.date }}</span>
+              <span style="display:flex;gap:6px;justify-content:flex-end">
+                <button onClick="{{ download }}" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--bd,#e3e6ec);background:var(--surf,#fff);color:var(--tx2,#5f6675);cursor:pointer"><i class="ph ph-download-simple" style="font-size:14px"></i></button>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- SETTINGS -->
+      <sc-if value="{{ tabSettings }}" hint-placeholder-val="{{ false }}">
+      <div style="max-width:620px">
+        <h2 style="margin:0 0 16px;font-size:21px;font-weight:800;letter-spacing:-.02em;color:var(--tx,#191c24)">Settings</h2>
+        <div style="background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:16px;box-shadow:var(--sh,0 1px 3px rgba(20,23,33,.06));padding:22px;margin-bottom:18px">
+          <div style="font-size:12.5px;font-weight:700;color:var(--tx,#191c24);margin-bottom:7px">Episode name</div>
+          <input type="text" value="{{ currentEpTitle }}" onChange="{{ noop }}" style="width:100%;padding:11px 13px;border-radius:11px;border:1px solid var(--bd,#e3e6ec);background:var(--surf2,#eceef3);color:var(--tx,#191c24);font-size:14px;font-family:inherit;margin-bottom:20px">
+          <div style="font-size:12.5px;font-weight:700;color:var(--tx,#191c24);margin-bottom:7px">Description</div>
+          <textarea onChange="{{ noop }}" placeholder="A short note about this episode…" style="width:100%;min-height:64px;padding:11px 13px;border-radius:11px;border:1px solid var(--bd,#e3e6ec);background:var(--surf2,#eceef3);color:var(--tx,#191c24);font-size:14px;font-family:inherit;resize:vertical;margin-bottom:20px;line-height:1.5"></textarea>
+          <div style="font-size:12.5px;font-weight:700;color:var(--tx,#191c24);margin-bottom:9px">Default language</div>
+          <div style="display:flex;gap:9px;margin-bottom:22px">
+            <sc-for list="{{ setLangVM }}" as="l" hint-placeholder-count="2">
+              <button onClick="{{ l.select }}" style="{{ l.style }}">{{ l.label }}</button>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid var(--bd,#e3e6ec)">
+            <div><div style="font-size:14px;font-weight:700;color:var(--tx,#191c24)">Smart Context</div><div style="font-size:12px;color:var(--tx2,#5f6675);margin-top:2px">Use similarity search to pick relevant scenes</div></div>
+            <div onClick="{{ tgSmart.toggle }}" style="{{ tgSmart.track }}"><div style="{{ tgSmart.knob }}"></div></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid var(--bd,#e3e6ec)">
+            <div><div style="font-size:14px;font-weight:700;color:var(--tx,#191c24)">Contextual Summaries</div><div style="font-size:12px;color:var(--tx2,#5f6675);margin-top:2px">Add a per-scene summary weighted by research questions</div></div>
+            <div onClick="{{ tgCtx.toggle }}" style="{{ tgCtx.track }}"><div style="{{ tgCtx.knob }}"></div></div>
+          </div>
+          <button onClick="{{ saveSettings }}" style="margin-top:18px;display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:11px;border:none;background:var(--ac,#6366f1);color:var(--act,#fff);font-size:14px;font-weight:700;cursor:pointer"><i class="ph ph-check" style="font-size:16px"></i>Save changes</button>
+        </div>
+        <div style="background:var(--surf,#fff);border:1px solid #f3c7c7;border-radius:16px;padding:20px">
+          <div style="font-size:14px;font-weight:700;color:#c4302b;margin-bottom:5px">Danger Zone</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+            <div style="font-size:12.5px;color:var(--tx2,#5f6675);line-height:1.5">Permanently delete this episode and all of its files. This cannot be undone.</div>
+            <button onClick="{{ deleteEp }}" style="flex:none;display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:11px;border:1px solid #e5a3a3;background:transparent;color:#c4302b;font-size:13.5px;font-weight:700;cursor:pointer"><i class="ph ph-trash" style="font-size:15px"></i>Delete Episode</button>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+    </section>
+  </div>
+</main>
+</sc-if>
+
+<!-- ============ TOASTS ============ -->
+<div style="position:fixed;top:18px;right:18px;z-index:200;display:flex;flex-direction:column;gap:10px">
+  <sc-for list="{{ toastsVM }}" as="t" hint-placeholder-count="0">
+    <div style="{{ t.style }}">
+      <i class="ph {{ t.icon }} ph-fill" style="font-size:18px;color:{{ t.iconColor }}"></i>
+      <span style="flex:1">{{ t.msg }}</span>
+      <button onClick="{{ t.close }}" style="border:none;background:transparent;color:var(--tx3,#9aa1ae);cursor:pointer;display:flex"><i class="ph ph-x" style="font-size:14px"></i></button>
+    </div>
+  </sc-for>
+</div>
+
+<!-- ============ MODALS ============ -->
+<sc-if value="{{ hasModal }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeModal }}" style="position:fixed;inset:0;z-index:150;background:rgba(15,18,28,.5);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:20px">
+  <div onClick="{{ stop }}" style="width:100%;max-width:440px;background:var(--surf,#fff);border:1px solid var(--bd,#e3e6ec);border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.3);padding:24px;animation:pop .2s ease">
+
+    <sc-if value="{{ modalNewShow }}" hint-placeholder-val="{{ false }}">
+      <h3 style="margin:0 0 4px;font-size:18px;font-weight:800;color:var(--tx,#191c24)">New TV Show</h3>
+      <p style="margin:0 0 18px;font-size:13px;color:var(--tx2,#5f6675)">Create a container for a new series of episodes.</p>
+      <div style="font-size:12.5px;font-weight:700;color:var(--tx,#191c24);margin-bottom:7px">Name</div>
+      <input type="text" value="{{ draftName }}" onChange="{{ onDraftName }}" placeholder="e.g. The Glass Bridge" style="width:100%;padding:11px 13px;border-radius:11px;border:1px solid var(--bd,#e3e6ec);background:var(--surf2,#eceef3);color:var(--tx,#191c24);font-size:14px;font-family:inherit;margin-bottom:16px">
+      <div style="font-size:12.5px;font-weight:700;color:var(--tx,#191c24);margin-bottom:7px">Description</div>
+      <textarea value="{{ draftDesc }}" onChange="{{ onDraftDesc }}" placeholder="One line that captures the show…" style="width:100%;min-height:60px;padding:11px 13px;border-radius:11px;border:1px solid var(--bd,#e3e6ec);background:var(--surf2,#eceef3);color:var(--tx,#191c24);font-size:14px;font-family:inherit;resize:vertical;line-height:1.5"></textarea>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:22px">
+        <button onClick="{{ closeModal }}" style="padding:11px 18px;border-radius:11px;border:1px solid var(--bd,#e3e6ec);background:var(--surf,#fff);color:var(--tx,#191c24);font-size:14px;font-weight:600;cursor:pointer">Cancel</button>
+        <button onClick="{{ confirmNewShow }}" style="padding:11px 20px;border-radius:11px;border:none;background:var(--ac,#6366f1);color:var(--act,#fff);font-size:14px;font-weight:700;cursor:pointer">Create Show</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ modalAddQ }}" hint-placeholder-val="{{ false }}">
+      <h3 style="margin:0 0 4px;font-size:18px;font-weight:800;color:var(--tx,#191c24)">Add Research Question</h3>
+      <p style="margin:0 0 18px;font-size:13px;color:var(--tx2,#5f6675)">Saved questions guide every report for this episode.</p>
+      <textarea value="{{ draftQ }}" onChange="{{ onDraftQ }}" placeholder="e.g. What motivates the antagonist across this episode?" style="width:100%;min-height:90px;padding:11px 13px;border-radius:11px;border:1px solid var(--bd,#e3e6ec);background:var(--surf2,#eceef3);color:var(--tx,#191c24);font-size:14px;font-family:inherit;resize:vertical;line-height:1.5"></textarea>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:22px">
+        <button onClick="{{ closeModal }}" style="padding:11px 18px;border-radius:11px;border:1px solid var(--bd,#e3e6ec);background:var(--surf,#fff);color:var(--tx,#191c24);font-size:14px;font-weight:600;cursor:pointer">Cancel</button>
+        <button onClick="{{ confirmAddQ }}" style="padding:11px 20px;border-radius:11px;border:none;background:var(--ac,#6366f1);color:var(--act,#fff);font-size:14px;font-weight:700;cursor:pointer">Add Question</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ modalDeleteEp }}" hint-placeholder-val="{{ false }}">
+      <div style="width:46px;height:46px;border-radius:13px;background:#fde4e4;color:#c4302b;display:flex;align-items:center;justify-content:center;margin-bottom:14px"><i class="ph ph-warning" style="font-size:24px"></i></div>
+      <h3 style="margin:0 0 4px;font-size:18px;font-weight:800;color:var(--tx,#191c24)">Delete this episode?</h3>
+      <p style="margin:0 0 0;font-size:13.5px;color:var(--tx2,#5f6675);line-height:1.5">{{ currentEpTitle }} and all of its transcripts, reports, and background files will be permanently removed. This cannot be undone.</p>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:22px">
+        <button onClick="{{ closeModal }}" style="padding:11px 18px;border-radius:11px;border:1px solid var(--bd,#e3e6ec);background:var(--surf,#fff);color:var(--tx,#191c24);font-size:14px;font-weight:600;cursor:pointer">Cancel</button>
+        <button onClick="{{ confirmDeleteEp }}" style="padding:11px 20px;border-radius:11px;border:none;background:#dc2626;color:#fff;font-size:14px;font-weight:700;cursor:pointer">Delete Episode</button>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;},&quot;defaultMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'&quot;},&quot;defaultAccent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;indigo&quot;,&quot;teal&quot;,&quot;amber&quot;,&quot;coral&quot;,&quot;emerald&quot;],&quot;default&quot;:&quot;indigo&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;orgName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Helios Pictures&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  rootRef = React.createRef();
+  toastSeq = 0;
+
+  ACCENTS = {
+    indigo:{light:{ac:'#6366f1',acw:'#eef0ff',ring:'rgba(99,102,241,.30)'},dark:{ac:'#838dfb',acw:'#23263c',ring:'rgba(131,141,251,.35)'}},
+    teal:{light:{ac:'#0d9488',acw:'#e2f6f2',ring:'rgba(13,148,136,.30)'},dark:{ac:'#2dd4bf',acw:'#10332f',ring:'rgba(45,212,191,.35)'}},
+    amber:{light:{ac:'#e0850a',acw:'#fdf1dd',ring:'rgba(224,133,10,.30)'},dark:{ac:'#fbbf24',acw:'#34290f',ring:'rgba(251,191,36,.35)'}},
+    coral:{light:{ac:'#ef5a4c',acw:'#ffe9e6',ring:'rgba(239,90,76,.30)'},dark:{ac:'#fb8a7b',acw:'#391f1c',ring:'rgba(251,138,123,.35)'}},
+    emerald:{light:{ac:'#10b981',acw:'#e2f6ee',ring:'rgba(16,185,129,.30)'},dark:{ac:'#34d399',acw:'#0f3326',ring:'rgba(52,211,153,.35)'}},
+  };
+  ACCENT_DISPLAY = {indigo:'#6366f1',teal:'#0d9488',amber:'#e0850a',coral:'#ef5a4c',emerald:'#10b981'};
+
+  ACTIVITY = [
+    {type:'Translate',icon:'ph-translate',ep:'Crown of Ashes · S01E03',status:'Running',time:'2 min ago'},
+    {type:'Report',icon:'ph-file-text',ep:'Midnight Diner · S01E07',status:'Completed',time:'18 min ago'},
+    {type:'Translate',icon:'ph-translate',ep:'Paper Cities · S01E02',status:'Failed',time:'1 hr ago'},
+    {type:'Report',icon:'ph-file-text',ep:'Crown of Ashes · S01E02',status:'Completed',time:'3 hr ago'},
+    {type:'Translate',icon:'ph-translate',ep:'The Lighthouse Keeper · S01E05',status:'Completed',time:'5 hr ago'},
+    {type:'Report',icon:'ph-file-text',ep:'Crown of Ashes · S01E01',status:'Stopped',time:'Yesterday'},
+  ];
+
+  KNOW = [
+    {name:'series_bible.docx',size:'248 KB',icon:'ph-file-doc'},
+    {name:'character_glossary.csv',size:'12 KB',icon:'ph-file-csv'},
+    {name:'production_notes.md',size:'8 KB',icon:'ph-file-text'},
+  ];
+
+  FILES = {
+    Input:[{name:'raw_transcript.xlsx',size:'1.8 MB',date:'Jun 24',icon:'ph-microsoft-excel-logo'}],
+    Questions:[{name:'questions.json',size:'2 KB',date:'Jun 20',icon:'ph-brackets-curly'}],
+    Translated_Episodes:[{name:'all_translated.xlsx',size:'2.1 MB',date:'Jun 24',icon:'ph-microsoft-excel-logo'},{name:'all_translated_he.xlsx',size:'2.0 MB',date:'Jun 22',icon:'ph-microsoft-excel-logo'}],
+    Reports:[{name:'Episode_3_Research_Report.docx',size:'1.2 MB',date:'Jun 24',icon:'ph-file-doc'}],
+    Background_Knowledge:[{name:'series_bible.docx',size:'248 KB',date:'Jun 18',icon:'ph-file-doc'},{name:'character_glossary.csv',size:'12 KB',date:'Jun 18',icon:'ph-file-csv'},{name:'production_notes.md',size:'8 KB',date:'Jun 19',icon:'ph-file-text'}],
+  };
+  FOLDER_ORDER = ['Input','Questions','Translated_Episodes','Reports','Background_Knowledge'];
+  FOLDER_ICON = {Input:'ph-tray-arrow-down',Questions:'ph-brackets-curly',Translated_Episodes:'ph-translate',Reports:'ph-file-text',Background_Knowledge:'ph-books'};
+
+  RECENT = [
+    {type:'Translate · S01E03',icon:'ph-translate',status:'Running',time:'2 min ago'},
+    {type:'Report · S01E03',icon:'ph-file-text',status:'Completed',time:'Yesterday'},
+    {type:'Translate · S01E03',icon:'ph-translate',status:'Completed',time:'2 days ago'},
+  ];
+
+  REPLIES = [
+    {text:"Across the selected scenes this thread is strongest in the confrontation at the drowned court — the dialogue frames loyalty as a transaction rather than a bond, and the queen's restraint visibly cracks.",cites:['S01E03 · Scene 42','S01E03 · Scene 57']},
+    {text:"Two characters carry the arc: the exiled queen, whose composure fails in the throne-room exchange, and the steward, who quietly shifts allegiance by the episode's close.",cites:['S01E03 · Scene 18','S01E03 · Scene 63']},
+    {text:"The transcripts reference three locations tied to this — the drowned court, the salt cellars, and the glass bridge — each introduced through stage directions rather than spoken lines.",cites:['S01E03 · Scene 8','S01E03 · Scene 71']},
+  ];
+
+  state = {
+    route:'dashboard',
+    mode: this.props.defaultMode || 'light',
+    accent: this.props.defaultAccent || 'indigo',
+    episodeTab:'overview', folder:'Translated_Episodes',
+    lang:'English', sumLang:'English', setLang:'English',
+    smart:true, ctx:false, sumSmart:true,
+    chatInput:'', thinking:false,
+    messages:[{role:'assistant',text:"Hi, I'm Speechy! Pick your episodes and background files on the left, then ask me anything about the script.",cites:[]}],
+    translations:[
+      {file:'all_translated.xlsx',lang:'English',scenes:142,date:'Jun 24',status:'Completed',_id:'tr1'},
+      {file:'all_translated_he.xlsx',lang:'Hebrew',scenes:142,date:'Jun 22',status:'Completed',_id:'tr2'},
+    ],
+    questions:[
+      'What are the central themes explored in this episode?',
+      'Which characters undergo significant development, and how?',
+      'Identify every location and setting referenced in the dialogue.',
+      'What conflicts drive the narrative forward?',
+      'Note any cultural, historical, or literary references.',
+    ],
+    reports:[{name:'Episode_3_Research_Report.docx',date:'Jun 24, 2026',size:'1.2 MB'}],
+    shows:[
+      {id:'s1',name:'Crown of Ashes',desc:'A dethroned queen claws her way back through a kingdom of liars.',org:'Helios Pictures',init:'CA',g:['#6366f1','#a855f7'],episodes:[
+        {id:'e1',n:'S01E01',title:'The Long Fall',lang:'English',scenes:128,status:'Completed'},
+        {id:'e2',n:'S01E02',title:'Ash & Iron',lang:'English',scenes:134,status:'Completed'},
+        {id:'e3',n:'S01E03',title:'The Drowned Court',lang:'English',scenes:142,status:'Running'},
+        {id:'e4',n:'S01E04',title:'A Crown of Salt',lang:'—',scenes:0,status:'Pending'},
+        {id:'e5',n:'S01E05',title:'Wolves at the Gate',lang:'English',scenes:151,status:'Completed'},
+        {id:'e6',n:'S01E06',title:'The Glass Bridge',lang:'—',scenes:0,status:'Pending'},
+        {id:'e7',n:'S01E07',title:'Embers',lang:'English',scenes:139,status:'Failed'},
+        {id:'e8',n:'S01E08',title:'Coronation',lang:'—',scenes:0,status:'Pending'},
+      ]},
+      {id:'s2',name:'Midnight Diner',desc:'Strangers share a meal and a secret after 2am.',org:'Helios Pictures',init:'MD',g:['#0ea5e9','#22d3ee'],episodes:[
+        {id:'e1',n:'S01E01',title:'Last Orders',lang:'English',scenes:96,status:'Completed'},
+        {id:'e2',n:'S01E02',title:'The Regular',lang:'English',scenes:88,status:'Completed'},
+        {id:'e3',n:'S01E03',title:'Closing Time',lang:'English',scenes:92,status:'Running'},
+      ]},
+      {id:'s3',name:'The Lighthouse Keeper',desc:'A remote keeper starts receiving transmissions from the past.',org:'Helios Pictures',init:'LK',g:['#f59e0b','#f97316'],episodes:[
+        {id:'e1',n:'S01E01',title:'Signal',lang:'English',scenes:104,status:'Completed'},
+        {id:'e2',n:'S01E02',title:'Static',lang:'English',scenes:99,status:'Completed'},
+        {id:'e3',n:'S01E03',title:'Echo',lang:'—',scenes:0,status:'Pending'},
+      ]},
+      {id:'s4',name:'Paper Cities',desc:'Architects of a utopia discover its blueprint is a lie.',org:'Northwind Studios',init:'PC',g:['#10b981','#34d399'],episodes:[
+        {id:'e1',n:'S01E01',title:'Foundations',lang:'English',scenes:112,status:'Completed'},
+        {id:'e2',n:'S01E02',title:'Load-Bearing',lang:'English',scenes:118,status:'Failed'},
+      ]},
+    ],
+    currentShowId:'s1', currentEpId:'e3',
+    sumEps:{e1:true,e2:true,e3:true}, sumKnow:{'series_bible.docx':true,'character_glossary.csv':true,'production_notes.md':false},
+    sumQ:{0:true,1:true,2:true,3:false,4:true},
+    customQ:'', dateFrom:'', dateTo:'',
+    modal:null, draft:{name:'',desc:'',q:''}, toasts:[],
+  };
+
+  componentDidMount(){ this.applyTheme(); }
+  componentDidUpdate(){ this.applyTheme(); }
+
+  applyTheme(){
+    const r = this.rootRef.current; if(!r) return;
+    const isDark = this.state.mode === 'dark';
+    const T = isDark
+      ? {bg:'#0b0d12',surf:'#14171f',surf2:'#1b1f29',bd:'#272c38',tx:'#eceef4',tx2:'#949bac',tx3:'#5f6675',sh:'0 1px 3px rgba(0,0,0,.45)'}
+      : {bg:'#f4f5f8',surf:'#ffffff',surf2:'#eceef3',bd:'#e3e6ec',tx:'#191c24',tx2:'#5f6675',tx3:'#9aa1ae',sh:'0 1px 3px rgba(20,23,33,.06)'};
+    const A = this.ACCENTS[this.state.accent][isDark?'dark':'light'];
+    const vars = Object.assign({}, T, A, {act: isDark ? '#15171f' : '#ffffff'});
+    Object.keys(vars).forEach(k => r.style.setProperty('--'+k, vars[k]));
+  }
+
+  badge(s){
+    const d = this.state.mode === 'dark';
+    const C = {
+      Pending: d?['rgba(148,163,184,.16)','#c3cad8']:['#edeff3','#5b6473'],
+      Running: d?['rgba(245,158,11,.18)','#fcd34d']:['#fdf0d6','#9a6a07'],
+      Completed: d?['rgba(34,197,94,.18)','#6ee7a8']:['#dcf7e6','#188048'],
+      Failed: d?['rgba(239,68,68,.18)','#fca5a5']:['#fde4e4','#c4302b'],
+      Stopped: d?['rgba(249,115,22,.18)','#fdba74']:['#ffe9d6','#c05a1c'],
+    };
+    const c = C[s] || C.Pending;
+    return {bg:c[0], fg:c[1]};
+  }
+
+  nav(route, extra){ this.setState(Object.assign({route, modal:null}, extra||{})); try{ window.scrollTo(0,0); }catch(e){} }
+  toast(msg, kind){
+    const id = ++this.toastSeq;
+    this.setState(s => ({toasts:[...s.toasts, {id, msg, kind:kind||'info'}]}));
+    if(kind !== 'error'){ setTimeout(() => this.setState(s => ({toasts:s.toasts.filter(t => t.id !== id)})), 4000); }
+  }
+  dismiss(id){ this.setState(s => ({toasts:s.toasts.filter(t => t.id !== id)})); }
+  toggleKey(obj, key){ this.setState(s => ({[obj]: Object.assign({}, s[obj], {[key]: !s[obj][key]})})); }
+  toggleBool(k){ this.setState(s => ({[k]: !s[k]})); }
+  setField(k, v){ this.setState({[k]: v}); }
+  setDraft(k, v){ this.setState(s => ({draft: Object.assign({}, s.draft, {[k]: v})})); }
+
+  send(){
+    const q = this.state.chatInput.trim(); if(!q) return;
+    this.setState(s => ({messages:[...s.messages, {role:'user', text:q, cites:[]}], chatInput:'', thinking:true}));
+    setTimeout(() => {
+      const userCount = this.state.messages.filter(m => m.role==='user').length;
+      const r = this.REPLIES[(userCount-1) % this.REPLIES.length];
+      this.setState(s => ({messages:[...s.messages, {role:'assistant', text:r.text, cites:r.cites.map(c => ({label:c}))}], thinking:false}));
+    }, 1500);
+  }
+
+  startTranslate(){
+    const lang = this.state.lang;
+    const id = 'tr' + (++this.toastSeq);
+    const file = lang === 'Hebrew' ? 'all_translated_he.xlsx' : 'all_translated.xlsx';
+    this.setState(s => ({translations:[{file, lang, scenes:'—', date:'Just now', status:'Running', _id:id}, ...s.translations]}));
+    this.toast('Translation started — ' + lang, 'info');
+    setTimeout(() => {
+      this.setState(s => ({translations:s.translations.map(t => t._id===id ? Object.assign({}, t, {status:'Completed', scenes:142}) : t)}));
+      this.toast('Translation completed', 'success');
+    }, 3200);
+  }
+
+  openModal(kind){ this.setState({modal:kind, draft:{name:'',desc:'',q:''}}); }
+  closeModal(){ this.setState({modal:null}); }
+  confirmNewShow(){
+    const name = (this.state.draft.name||'').trim() || 'Untitled Show';
+    const desc = (this.state.draft.desc||'').trim() || 'A new series, freshly added to your workspace.';
+    const palettes = [['#8b5cf6','#ec4899'],['#0ea5e9','#6366f1'],['#f43f5e','#f59e0b'],['#14b8a6','#22d3ee']];
+    const g = palettes[this.state.shows.length % palettes.length];
+    const init = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const id = 'sx' + (++this.toastSeq);
+    const show = {id, name, desc, org:this.props.orgName||'Helios Pictures', init, g, episodes:[]};
+    this.setState(s => ({shows:[...s.shows, show], modal:null}));
+    this.toast('“' + name + '” created', 'success');
+    setTimeout(() => this.nav('tvshow', {currentShowId:id}), 60);
+  }
+  confirmAddQ(){
+    const q = (this.state.draft.q||'').trim(); if(!q){ this.closeModal(); return; }
+    this.setState(s => ({questions:[...s.questions, q], modal:null}));
+    this.toast('Research question added', 'success');
+  }
+  confirmDeleteEp(){
+    const title = this.currentEp().title;
+    this.setState({modal:null});
+    this.toast('“' + title + '” deleted', 'success');
+    this.nav('tvshow', {currentShowId:this.state.currentShowId});
+  }
+
+  currentShow(){ return this.state.shows.find(x => x.id === this.state.currentShowId) || this.state.shows[0]; }
+  currentEp(){ const eps = this.currentShow().episodes || []; return eps.find(e => e.id === this.state.currentEpId) || eps[0] || {n:'',title:'',lang:'',scenes:0,status:'Pending'}; }
+
+  renderVals(){
+    const S = this.state;
+    const isDark = S.mode === 'dark';
+    const show = this.currentShow();
+    const episodes = show.episodes || [];
+    const ep = this.currentEp();
+
+    const navItem = on => 'display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;background:'+(on?'var(--acw)':'transparent')+';color:'+(on?'var(--ac)':'var(--tx2)');
+    const tabStyle = on => 'display:flex;align-items:center;gap:11px;width:100%;padding:11px 13px;border-radius:11px;border:none;text-align:left;font-size:14px;cursor:pointer;font-family:inherit;font-weight:'+(on?'700':'600')+';background:'+(on?'var(--acw)':'transparent')+';color:'+(on?'var(--ac)':'var(--tx2)');
+    const segStyle = on => 'flex:1;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;border:1px solid '+(on?'var(--ac)':'var(--bd)')+';background:'+(on?'var(--acw)':'var(--surf)')+';color:'+(on?'var(--ac)':'var(--tx2)');
+    const folderStyle = on => 'display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:11px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;border:1px solid '+(on?'var(--ac)':'var(--bd)')+';background:'+(on?'var(--acw)':'var(--surf)')+';color:'+(on?'var(--ac)':'var(--tx2)');
+    const checkStyle = on => 'width:20px;height:20px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;border:1.5px solid '+(on?'var(--ac)':'var(--bd)')+';background:'+(on?'var(--ac)':'transparent');
+    const track = on => 'width:42px;height:24px;border-radius:99px;flex:none;cursor:pointer;position:relative;transition:.2s;background:'+(on?'var(--ac)':'var(--bd)');
+    const knob = on => 'position:absolute;top:3px;left:'+(on?'21px':'3px')+';width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.25)';
+    const dotStyle = (c,on) => 'width:18px;height:18px;border-radius:50%;cursor:pointer;background:'+c+';outline:2px solid '+(on?c:'transparent')+';outline-offset:2px;transition:.15s';
+
+    const seg = (opts, cur, key) => opts.map(o => ({label:o, on:cur===o, select:()=>this.setField(key,o), style:segStyle(cur===o)}));
+
+    const route = S.route;
+    const userBubble = 'max-width:78%;padding:11px 15px;border-radius:16px 16px 4px 16px;background:var(--ac);color:var(--act);font-size:14.5px;line-height:1.5';
+    const botBubble = 'max-width:82%;padding:13px 16px;border-radius:16px 16px 16px 4px;background:var(--surf2);color:var(--tx);font-size:14.5px;line-height:1.55;border:1px solid var(--bd)';
+
+    const toastStyle = kind => 'display:flex;align-items:center;gap:10px;min-width:250px;max-width:350px;padding:13px 14px;border-radius:13px;background:var(--surf);border:1px solid var(--bd);box-shadow:0 10px 30px rgba(0,0,0,.18);font-size:13.5px;font-weight:600;color:var(--tx);animation:toastIn .25s ease;border-left:4px solid '+(kind==='success'?'#16a34a':kind==='error'?'#dc2626':'var(--ac)');
+    const toastIconColor = kind => kind==='success'?'#16a34a':kind==='error'?'#dc2626':'var(--ac)';
+    const toastIcon = kind => kind==='success'?'ph-check-circle':kind==='error'?'ph-warning-circle':'ph-info';
+
+    return {
+      rootRef: this.rootRef,
+      orgName: this.props.orgName || 'Helios Pictures',
+      modeIcon: isDark ? 'ph-sun' : 'ph-moon',
+
+      isDashboard: route==='dashboard',
+      isShows: route==='tvshows',
+      isShowDetail: route==='tvshow',
+      isEpisode: route==='episode',
+
+      tabOverview: S.episodeTab==='overview',
+      tabTranslate: S.episodeTab==='translate',
+      tabQuestions: S.episodeTab==='questions',
+      tabSummary: S.episodeTab==='summary',
+      tabChat: S.episodeTab==='chat',
+      tabFiles: S.episodeTab==='files',
+      tabSettings: S.episodeTab==='settings',
+
+      goDashboard: () => this.nav('dashboard'),
+      goShows: () => this.nav('tvshows'),
+      backToShow: () => this.nav('tvshow', {currentShowId:S.currentShowId}),
+      toggleMode: () => this.setState(s => ({mode: s.mode==='light' ? 'dark' : 'light'})),
+      newShow: () => this.openModal('newshow'),
+      addQ: () => this.openModal('addq'),
+      deleteEp: () => this.openModal('deleteep'),
+      closeModal: () => this.closeModal(),
+      stop: (e) => e.stopPropagation(),
+      confirmNewShow: () => this.confirmNewShow(),
+      confirmAddQ: () => this.confirmAddQ(),
+      confirmDeleteEp: () => this.confirmDeleteEp(),
+      startTranslate: () => this.startTranslate(),
+      send: () => this.send(),
+      noop: () => {},
+      userMenu: () => this.toast('Signed in as Maya Kessler · Manager', 'info'),
+      download: () => this.toast('Download started', 'success'),
+      upload: () => this.toast('Choose a file to upload', 'info'),
+      generateReport: () => this.toast('Report generation queued', 'info'),
+      saveSettings: () => this.toast('Settings saved', 'success'),
+      editShow: () => this.toast('Opening editor…', 'info'),
+
+      onChatInput: (e) => this.setField('chatInput', e.target.value),
+      onChatKey: (e) => { if(e.key==='Enter'){ e.preventDefault(); this.send(); } },
+      onDraftName: (e) => this.setDraft('name', e.target.value),
+      onDraftDesc: (e) => this.setDraft('desc', e.target.value),
+      onDraftQ: (e) => this.setDraft('q', e.target.value),
+      onCustomQ: (e) => this.setField('customQ', e.target.value),
+      onDateFrom: (e) => this.setField('dateFrom', e.target.value),
+      onDateTo: (e) => this.setField('dateTo', e.target.value),
+
+      navVM: [
+        {label:'Dashboard', icon:'ph-house', go:()=>this.nav('dashboard'), style:navItem(route==='dashboard')},
+        {label:'TV Shows', icon:'ph-television-simple', go:()=>this.nav('tvshows'), style:navItem(route==='tvshows'||route==='tvshow')},
+        {label:'Episodes', icon:'ph-film-slate', go:()=>this.nav('episode'), style:navItem(route==='episode')},
+      ],
+
+      accentsVM: Object.keys(this.ACCENT_DISPLAY).map(k => ({key:k, select:()=>this.setField('accent',k), style:dotStyle(this.ACCENT_DISPLAY[k], S.accent===k)})),
+
+      stats: [
+        {label:'TV Shows', value:String(S.shows.length), icon:'ph-television-simple'},
+        {label:'Episodes', value:'36', icon:'ph-film-slate'},
+        {label:'Running jobs', value:'2', icon:'ph-spinner-gap'},
+        {label:'Completed today', value:'7', icon:'ph-check-circle'},
+      ],
+
+      showsVM: S.shows.map(sh => ({
+        name:sh.name, desc:sh.desc, org:sh.org, init:sh.init,
+        epCount:(sh.episodes||[]).length,
+        thumb:'background:linear-gradient(135deg,'+sh.g[0]+','+sh.g[1]+')',
+        open:()=>this.nav('tvshow', {currentShowId:sh.id}),
+      })),
+
+      activityVM: this.ACTIVITY.map(a => Object.assign({}, a, {_b:this.badge(a.status)})),
+
+      currentShowName: show.name,
+      currentShowDesc: show.desc,
+      currentShowOrg: show.org,
+      currentShowInit: show.init,
+      currentShowEpCount: episodes.length,
+      currentShowThumb: 'background:linear-gradient(135deg,'+show.g[0]+','+show.g[1]+')',
+
+      episodesVM: episodes.map(e => Object.assign({}, e, {_b:this.badge(e.status), open:()=>this.nav('episode', {currentEpId:e.id, episodeTab:'overview'})})),
+
+      currentEpN: ep.n,
+      currentEpTitle: ep.title,
+      currentEpLang: ep.lang,
+      currentEpScenes: ep.scenes,
+      currentEpStatus: ep.status,
+      currentEpBadge: this.badge(ep.status),
+
+      tabsVM: [
+        {label:'Overview', icon:'ph-squares-four', select:()=>this.setField('episodeTab','overview'), style:tabStyle(S.episodeTab==='overview')},
+        {label:'Translate', icon:'ph-translate', select:()=>this.setField('episodeTab','translate'), style:tabStyle(S.episodeTab==='translate')},
+        {label:'Questions', icon:'ph-question', select:()=>this.setField('episodeTab','questions'), style:tabStyle(S.episodeTab==='questions')},
+        {label:'Summary', icon:'ph-file-text', select:()=>this.setField('episodeTab','summary'), style:tabStyle(S.episodeTab==='summary')},
+        {label:'Chat', icon:'ph-chat-circle', select:()=>this.setField('episodeTab','chat'), style:tabStyle(S.episodeTab==='chat')},
+        {label:'Files', icon:'ph-folder', select:()=>this.setField('episodeTab','files'), style:tabStyle(S.episodeTab==='files')},
+        {label:'Settings', icon:'ph-gear-six', select:()=>this.setField('episodeTab','settings'), style:tabStyle(S.episodeTab==='settings')},
+      ],
+
+      fileCountsVM: this.FOLDER_ORDER.map(k => ({label:k.replace(/_/g,' '), count:this.FILES[k].length, icon:this.FOLDER_ICON[k]})),
+
+      quickActionsVM: [
+        {label:'Translate', desc:'Upload & translate a transcript', icon:'ph-translate', go:()=>this.setField('episodeTab','translate')},
+        {label:'Generate Report', desc:'Answer your research questions', icon:'ph-file-text', go:()=>this.setField('episodeTab','summary')},
+        {label:'Open Chat', desc:'Ask freely across episodes', icon:'ph-chat-circle', go:()=>this.setField('episodeTab','chat')},
+      ],
+
+      recentRunsVM: this.RECENT.map(r => Object.assign({}, r, {_b:this.badge(r.status)})),
+
+      transLangVM: seg(['English','Hebrew'], S.lang, 'lang'),
+      sumLangVM: seg(['English','Hebrew'], S.sumLang, 'sumLang'),
+      setLangVM: seg(['English','Hebrew'], S.setLang, 'setLang'),
+
+      translationsVM: S.translations.map(t => Object.assign({}, t, {_b:this.badge(t.status)})),
+
+      questionsVM: S.questions.map((q,i) => ({text:q, num:String(i+1), del:()=>this.setState(s=>({questions:s.questions.filter((_,j)=>j!==i)}))})),
+
+      knowledgeVM: this.KNOW,
+      reportsVM: S.reports,
+
+      sumEpsVM: episodes.map(e => ({n:e.n, title:e.title, checked:!!S.sumEps[e.id], toggle:()=>this.toggleKey('sumEps', e.id), checkStyle:checkStyle(!!S.sumEps[e.id])})),
+      sumKnowVM: this.KNOW.map(f => ({name:f.name, icon:f.icon, checked:!!S.sumKnow[f.name], toggle:()=>this.toggleKey('sumKnow', f.name), checkStyle:checkStyle(!!S.sumKnow[f.name])})),
+      sumQVM: S.questions.map((q,i) => ({text:q, checked:!!S.sumQ[i], toggle:()=>this.toggleKey('sumQ', i), checkStyle:checkStyle(!!S.sumQ[i])})),
+
+      customQ:S.customQ, dateFrom:S.dateFrom, dateTo:S.dateTo, chatInput:S.chatInput, thinking:S.thinking,
+
+      tgSmart: {toggle:()=>this.toggleBool('smart'), track:track(S.smart), knob:knob(S.smart)},
+      tgCtx: {toggle:()=>this.toggleBool('ctx'), track:track(S.ctx), knob:knob(S.ctx)},
+      tgSumSmart: {toggle:()=>this.toggleBool('sumSmart'), track:track(S.sumSmart), knob:knob(S.sumSmart)},
+
+      foldersVM: this.FOLDER_ORDER.map(k => ({label:k.replace(/_/g,' '), count:this.FILES[k].length, select:()=>this.setField('folder',k), style:folderStyle(S.folder===k)})),
+      currentFilesVM: this.FILES[S.folder] || [],
+
+      messagesVM: S.messages.map(m => ({
+        text:m.text, cites:m.cites||[], hasCites:(m.cites||[]).length>0,
+        rowStyle:'display:flex;'+(m.role==='user'?'justify-content:flex-end':'justify-content:flex-start'),
+        bubbleStyle: m.role==='user' ? userBubble : botBubble,
+      })),
+
+      toastsVM: S.toasts.map(t => ({msg:t.msg, icon:toastIcon(t.kind), iconColor:toastIconColor(t.kind), style:toastStyle(t.kind), close:()=>this.dismiss(t.id)})),
+
+      hasModal: !!S.modal,
+      modalNewShow: S.modal==='newshow',
+      modalAddQ: S.modal==='addq',
+      modalDeleteEp: S.modal==='deleteep',
+      draftName:S.draft.name, draftDesc:S.draft.desc, draftQ:S.draft.q,
+    };
+  }
+}
+</script>
+</body>
+</html>
