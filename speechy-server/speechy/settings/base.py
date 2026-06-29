@@ -136,6 +136,7 @@ CELERY_TIMEZONE = 'UTC'
 # EXTERNAL_URL: LLM API endpoint (OpenAI-compatible)
 LLM_ENDPOINT = config('LLM_ENDPOINT', default='')
 LLM_MODEL = config('LLM_MODEL', default='gpt-4')
+LLM_API_KEY = config('LLM_API_KEY', default='')
 LLM_TIMEOUT = 300
 
 # --- Prompts ---
