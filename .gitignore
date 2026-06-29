@@ -1,0 +1,31 @@
+.venv/
+node_modules/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment variables and secrets (NEVER commit these)
+.env
+*.local
+credentials.json
+
+# Log files and databases
+*.log
+*.sqlite
+
+# Package manager dependencies
+node_modules/
+jspm_packages/
+
+# Build and distribution directories
+dist/
+build/
+out/
+bin/
+
+# IDE / Editor folders
+.vscode/
+.idea/
+*.suo
+*.ntvs*
