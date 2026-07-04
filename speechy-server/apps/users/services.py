@@ -1,6 +1,7 @@
 from django.utils import timezone
+from django.utils.text import slugify
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User, APIKey, UserSession, AuditLog
+from .models import Organization, User, APIKey, UserSession, AuditLog
 
 
 def login_user(username: str, password: str):
@@ -37,6 +38,19 @@ def create_api_key(user: User, name: str):
 def revoke_api_key(api_key: APIKey):
     api_key.revoked_at = timezone.now()
     api_key.save(update_fields=['revoked_at'])
+
+
+def register_user(username: str, email: str, password: str, organization_name: str):
+    base_slug = slugify(organization_name) or 'org'
+    slug = base_slug
+    counter = 1
+    while Organization.objects.filter(slug=slug).exists():
+        slug = f'{base_slug}-{counter}'
+        counter += 1
+    org = Organization.objects.create(name=organization_name, slug=slug)
+    user = User.objects.create_user(username=username, email=email, password=password, organization=org)
+    refresh = RefreshToken.for_user(user)
+    return user, refresh
 
 
 def log_action(user, action: str, resource_type: str = '', resource_id: str = '', details: dict = None):

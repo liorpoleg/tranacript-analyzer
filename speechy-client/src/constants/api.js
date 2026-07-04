@@ -5,6 +5,7 @@ export const API = {
     LOGIN: `${BASE}/auth/login/`,
     LOGOUT: `${BASE}/auth/logout/`,
     ME: `${BASE}/auth/me/`,
+    REGISTER: `${BASE}/auth/register/`,
   },
   SHOWS: `${BASE}/shows/`,
   SHOW: (id) => `${BASE}/shows/${id}/`,

@@ -19,6 +19,15 @@ export function useLogin() {
   });
 }
 
+export function useRegister() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data) =>
+      client.post(API.AUTH.REGISTER, data).then((r) => r.data.data),
+    onSuccess: (user) => qc.setQueryData(['me'], user),
+  });
+}
+
 export function useLogout() {
   const qc = useQueryClient();
   return useMutation({

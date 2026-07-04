@@ -5,24 +5,41 @@ import { MonitorPlay, SquaresFour, SignOut, User } from '@phosphor-icons/react';
 import { useAuth } from '../hooks/useAuth';
 import { useLogout } from '../api/auth';
 import { ROUTES } from '../constants/routes';
+import logo from '../assets/logo2.png';
 
 const NAV_LINKS = [
   { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: <SquaresFour size={17} /> },
   { label: 'Shows', path: ROUTES.SHOWS, icon: <MonitorPlay size={17} /> },
 ];
 
-function SpeechyLogo() {
-  return (
-    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-      <rect x="3" y="4" width="26" height="20" rx="9" fill="#2196f3" />
-      <path d="M10.5 24 L10.5 29 L17.5 24 Z" fill="#2196f3" />
-      <circle cx="12.4" cy="13" r="2.15" fill="#fff" />
-      <circle cx="19.6" cy="13" r="2.15" fill="#fff" />
-      <path d="M12 17.4 Q16 20.6 20 17.4" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" fill="none" />
-    </svg>
-  );
+function SpeechyLogo(){
+  return(<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="400" cy="320" r="280" fill="#A1E8E3"/>
+  <circle cx="400" cy="320" r="260" fill="#7EDCD4"/>
+  
+  <path d="M180 280 Q120 220 150 160 Q200 140 260 180 Q280 240 220 300 Q180 340 150 400 Q120 440 170 480 Q220 490 280 440" fill="#00B8E0" stroke="#FFFFFF" stroke-width="18" stroke-linejoin="round"/>
+  
+  <path d="M310 250 Q310 380 310 480 L310 500 Q310 520 330 520 Q350 520 350 500 L350 300 Q350 260 340 255" fill="#00B8E0" stroke="#FFFFFF" stroke-width="18" stroke-linejoin="round"/>
+  
+  <path d="M380 320 Q410 280 460 280 Q490 280 500 320 Q500 350 470 370 Q410 380 390 355" fill="#00B8E0" stroke="#FFFFFF" stroke-width="18" stroke-linejoin="round"/>
+  
+  <path d="M530 320 Q560 280 610 280 Q640 280 650 320 Q650 350 620 370 Q560 380 540 355" fill="#00B8E0" stroke="#FFFFFF" stroke-width="18" stroke-linejoin="round"/>
+  
+  <path d="M680 310 Q710 280 760 295 Q780 320 760 360 Q720 385 680 355" fill="#00B8E0" stroke="#FFFFFF" stroke-width="18" stroke-linejoin="round"/>
+  
+  <path d="M310 250 L310 480" fill="none" stroke="#00B8E0" stroke-width="25" stroke-linecap="round"/>
+  <path d="M310 300 Q340 260 380 300" fill="none" stroke="#00B8E0" stroke-width="18" stroke-linejoin="round"/>
+  
+  <path d="M760 300 Q780 340 760 400 Q740 460 710 480" fill="none" stroke="#00B8E0" stroke-width="18" stroke-linejoin="round"/>
+  
+  <path d="M240 180 Q255 140 275 155" fill="none" stroke="#00B8E0" stroke-width="12" stroke-linecap="round"/>
+  <path d="M240 180 Q255 120 280 130" fill="none" stroke="#00B8E0" stroke-width="12" stroke-linecap="round"/>
+  <path d="M240 180 Q255 100 285 105" fill="none" stroke="#00B8E0" stroke-width="12" stroke-linecap="round"/>
+  
+  <text x="195" y="385" font-family="sans-serif" font-size="195" font-weight="bold" fill="none" stroke="#FFFFFF" stroke-width="22" paint-order="stroke" letter-spacing="-8">Speechy</text>
+  <text x="195" y="385" font-family="sans-serif" font-size="195" font-weight="bold" fill="#00B8E0" letter-spacing="-8">Speechy</text>
+</svg>)
 }
-
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -35,12 +52,12 @@ export default function Navbar() {
   return (
     <AppBar position="sticky" color="inherit" elevation={0} sx={{ borderBottom: '1px solid', borderColor: 'divider', zIndex: 50 }}>
       <Toolbar sx={{ gap: 2.5, height: 66 }}>
-        <Box onClick={() => navigate(ROUTES.DASHBOARD)} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, cursor: 'pointer' }}>
-          <SpeechyLogo />
-          <Typography sx={{ fontFamily: '"Baloo 2"', fontWeight: 800, fontSize: '1.4rem', letterSpacing: '-0.01em' }}>
-            Speechy
-          </Typography>
+        <Box onClick={() => navigate(ROUTES.DASHBOARD)} sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }}>
+          {/* <SpeechyLogo/> */}
+          <Box component="img" src={logo} alt="Speechy" sx={{ height: 48, width: 'auto', objectFit: 'contain' }} />
         </Box>
+
+
 
         <Box sx={{ display: 'flex', gap: 0.5, ml: 1 }}>
           {NAV_LINKS.map((link) => (

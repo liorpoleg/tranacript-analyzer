@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Box, Card, CardContent, TextField, Typography, Alert } from '@mui/material';
 import AppButton from '../../atoms/AppButton';
 import { useLogin } from '../../api/auth';
@@ -69,6 +69,13 @@ export default function LoginPage() {
               Sign In
             </AppButton>
           </Box>
+
+          <Typography variant="body2" color="text.secondary" textAlign="center" mt={2.5}>
+            Don't have an account?{' '}
+            <Link to={ROUTES.SIGNUP} style={{ color: '#2196f3', fontWeight: 600, textDecoration: 'none' }}>
+              Sign up
+            </Link>
+          </Typography>
         </CardContent>
       </Card>
     </Box>

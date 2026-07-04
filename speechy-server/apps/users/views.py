@@ -11,9 +11,9 @@ from .models import Organization, User, APIKey, UserSession, AuditLog
 from .serializers import (
     OrganizationSerializer, UserSerializer, UserCreateSerializer,
     APIKeySerializer, APIKeyCreateSerializer, UserSessionSerializer,
-    AuditLogSerializer, LoginSerializer,
+    AuditLogSerializer, LoginSerializer, RegisterSerializer,
 )
-from .services import login_user, create_session, revoke_session, create_api_key, revoke_api_key
+from .services import login_user, register_user, create_session, revoke_session, create_api_key, revoke_api_key
 
 
 def _set_auth_cookies(response, refresh):
@@ -56,6 +56,30 @@ class LoginView(APIView):
         ua = request.META.get('HTTP_USER_AGENT', '')
         create_session(user, refresh, ip, ua)
         response = Response({'data': UserSerializer(user).data, 'error': None})
+        _set_auth_cookies(response, refresh)
+        return response
+
+
+class RegisterView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        d = serializer.validated_data
+        user, refresh = register_user(
+            username=d['username'],
+            email=d['email'],
+            password=d['password'],
+            organization_name=d['organization_name'],
+        )
+        ip = request.META.get('REMOTE_ADDR')
+        ua = request.META.get('HTTP_USER_AGENT', '')
+        create_session(user, refresh, ip, ua)
+        response = Response(
+            {'data': UserSerializer(user).data, 'error': None},
+            status=status.HTTP_201_CREATED,
+        )
         _set_auth_cookies(response, refresh)
         return response
 
