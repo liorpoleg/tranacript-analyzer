@@ -1,13 +1,9 @@
-import json
 import logging
 from celery import shared_task
 from django.db import transaction
 
 from .models import ProcessingJob, JobStatus
-from .services import (
-    load_prompt, inject_context, mark_running, mark_completed, mark_failed,
-    read_transcript_rows,
-)
+from .services import load_prompt, inject_context, mark_running, mark_completed, mark_failed
 from .llm_client import LLMClient, LLMError
 
 logger = logging.getLogger(__name__)
@@ -36,12 +32,17 @@ def translate_task(self, job_id: str):
     job.append_log('Starting translation...')
 
     try:
-        episode = job.episode
-        if not episode.raw_excel_path:
-            raise ValueError('No transcript uploaded for this episode.')
+        from apps.episodes.models import Transcript, TranscriptLanguage
 
-        rows = read_transcript_rows(episode.raw_excel_path)
-        job.append_log(f'Read {len(rows)} rows from transcript.')
+        episode = job.episode
+        origin = Transcript.objects.filter(
+            episode=episode, language=TranscriptLanguage.ORIGIN
+        ).first()
+        if not origin:
+            raise ValueError('No origin transcript found. Upload a transcript first.')
+
+        origin_rows = origin.rows
+        job.append_log(f'Loaded {len(origin_rows)} rows from origin transcript.')
 
         if _is_stopped(job):
             return
@@ -49,29 +50,27 @@ def translate_task(self, job_id: str):
         prompt_template = load_prompt('translate')
         client = LLMClient()
 
-        from apps.episodes.models import EpisodeTranslation, Language
-
-        for lang_code, lang_label in [('he', 'Hebrew'), ('en', 'English')]:
+        for lang_code, lang_label in [
+            (TranscriptLanguage.HEBREW, 'Hebrew'),
+            (TranscriptLanguage.ENGLISH, 'English'),
+        ]:
             if _is_stopped(job):
                 return
+
             job.append_log(f'Translating to {lang_label}...')
 
-            existing = EpisodeTranslation.objects.filter(
-                episode=episode, language=lang_code
-            ).first()
-            existing_ids = set()
-            if existing:
-                existing_ids = {r['row_id'] for r in existing.translated_rows}
-
-            new_rows = [r for r in rows if r['row_id'] not in existing_ids]
-            job.append_log(f'{len(new_rows)} new rows to translate to {lang_label}.')
+            existing = Transcript.objects.filter(episode=episode, language=lang_code).first()
+            existing_count = len(existing.rows) if existing else 0
+            new_rows = origin_rows[existing_count:]
 
             if not new_rows:
                 job.append_log(f'All rows already translated to {lang_label}, skipping.')
                 continue
 
+            job.append_log(f'{len(new_rows)} new rows to translate to {lang_label}.')
+
             transcript_text = '\n'.join(
-                f"[{r['row_id']}] {r['original_text']}" for r in new_rows
+                f'[{i}] {r["character_name"]}: {r["text"]}' for i, r in enumerate(new_rows)
             )
             prompt = inject_context(
                 prompt_template,
@@ -79,49 +78,38 @@ def translate_task(self, job_id: str):
                 TRANSCRIPT=transcript_text,
             )
             response = client.complete(prompt)
-            translated_rows = _parse_translated_response(response, new_rows, lang_code)
+            translated_rows = _parse_translated_response(response, new_rows)
 
             with transaction.atomic():
-                obj, created = EpisodeTranslation.objects.get_or_create(
+                obj, created = Transcript.objects.get_or_create(
                     episode=episode, language=lang_code,
-                    defaults={'translated_rows': translated_rows},
+                    defaults={'rows': translated_rows},
                 )
                 if not created:
-                    all_rows = {r['row_id']: r for r in obj.translated_rows}
-                    all_rows.update({r['row_id']: r for r in translated_rows})
-                    obj.translated_rows = list(all_rows.values())
-                    obj.save(update_fields=['translated_rows'])
+                    obj.rows = list(obj.rows) + translated_rows
+                    obj.save(update_fields=['rows', 'updated_at'])
 
             job.append_log(f'Saved {len(translated_rows)} translated rows in {lang_label}.')
 
         mark_completed(job)
         job.append_log('Translation completed successfully.')
 
-    except (LLMError, ValueError, FileNotFoundError, Exception) as exc:
+    except (LLMError, ValueError, Exception) as exc:
         logger.exception('translate_task failed for job %s', job_id)
         mark_failed(job, str(exc))
 
 
-def _parse_translated_response(response: str, original_rows: list[dict], language: str) -> list[dict]:
-    lines = response.strip().split('\n')
+def _parse_translated_response(response: str, original_rows: list) -> list:
+    lines = [line.strip() for line in response.strip().split('\n') if line.strip()]
     translated = []
-    row_map = {r['row_id']: r for r in original_rows}
-    row_ids = [r['row_id'] for r in original_rows]
-
-    for i, line in enumerate(lines):
-        if i >= len(row_ids):
-            break
-        row_id = row_ids[i]
-        original = row_map[row_id]
-        # Strip leading [id] if LLM echoed it back
-        text = line.strip()
-        if text.startswith(f'[{row_id}]'):
-            text = text[len(f'[{row_id}]'):].strip()
+    for i, original in enumerate(original_rows):
+        text = lines[i] if i < len(lines) else original['text']
+        if text.startswith(f'[{i}]'):
+            text = text[len(f'[{i}]'):].strip()
         translated.append({
-            'row_id': row_id,
-            'original_text': original['original_text'],
-            'translated_text': text,
-            'language': language,
+            'character_ref': original['character_ref'],
+            'character_name': original['character_name'],
+            'text': text,
         })
     return translated
 
@@ -136,17 +124,19 @@ def summarize_task(self, job_id: str):
     job.append_log('Starting episode summary...')
 
     try:
+        from apps.episodes.models import Transcript, TranscriptLanguage
+
         episode = job.episode
-        translation = (
-            episode.translations.filter(language='en').first()
-            or episode.translations.filter(language='he').first()
+        transcript = (
+            Transcript.objects.filter(episode=episode, language=TranscriptLanguage.ENGLISH).first()
+            or Transcript.objects.filter(episode=episode, language=TranscriptLanguage.HEBREW).first()
+            or Transcript.objects.filter(episode=episode, language=TranscriptLanguage.ORIGIN).first()
         )
-        if not translation:
-            raise ValueError('No translation found. Translate the episode first.')
+        if not transcript:
+            raise ValueError('No transcript found. Upload or translate the episode first.')
 
         transcript_text = '\n'.join(
-            f"[{r['row_id']}] {r['translated_text']}"
-            for r in translation.translated_rows
+            f'{r["character_name"]}: {r["text"]}' for r in transcript.rows
         )
         if _is_stopped(job):
             return
@@ -155,7 +145,6 @@ def summarize_task(self, job_id: str):
         prompt = inject_context(prompt_template, TRANSCRIPT=transcript_text)
         client = LLMClient()
         response = client.complete(prompt)
-
         summary_text, key_topics = _parse_summary_response(response)
 
         from apps.episodes.models import EpisodeSummary
@@ -174,8 +163,8 @@ def summarize_task(self, job_id: str):
 
 def _parse_summary_response(response: str) -> tuple[str, list[str]]:
     lines = response.strip().split('\n')
-    key_topics = []
-    summary_lines = []
+    key_topics: list[str] = []
+    summary_lines: list[str] = []
     in_topics = False
     for line in lines:
         stripped = line.strip()
@@ -202,17 +191,19 @@ def contextual_summary_task(self, job_id: str):
     job.append_log('Starting contextual summary...')
 
     try:
+        from apps.episodes.models import Transcript, TranscriptLanguage
+
         episode = job.episode
-        translation = (
-            episode.translations.filter(language='en').first()
-            or episode.translations.filter(language='he').first()
+        transcript = (
+            Transcript.objects.filter(episode=episode, language=TranscriptLanguage.ENGLISH).first()
+            or Transcript.objects.filter(episode=episode, language=TranscriptLanguage.HEBREW).first()
+            or Transcript.objects.filter(episode=episode, language=TranscriptLanguage.ORIGIN).first()
         )
-        if not translation:
-            raise ValueError('No translation found. Translate the episode first.')
+        if not transcript:
+            raise ValueError('No transcript found. Upload or translate the episode first.')
 
         transcript_text = '\n'.join(
-            f"[{r['row_id']}] {r['translated_text']}"
-            for r in translation.translated_rows
+            f'{r["character_name"]}: {r["text"]}' for r in transcript.rows
         )
 
         from apps.knowledge.services import get_knowledge_for_episode, get_questions_for_episode
@@ -220,7 +211,7 @@ def contextual_summary_task(self, job_id: str):
         questions = get_questions_for_episode(episode)
 
         if not questions:
-            raise ValueError('No active questions found for this episode\'s show/season.')
+            raise ValueError("No active questions found for this episode's show/season.")
 
         if _is_stopped(job):
             return
@@ -235,7 +226,6 @@ def contextual_summary_task(self, job_id: str):
             KNOWLEDGE=knowledge_block,
             QUESTIONS=questions_block,
         )
-
         client = LLMClient()
         response = client.complete(prompt)
 

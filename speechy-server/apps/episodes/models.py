@@ -5,23 +5,41 @@ from apps.shows.models import Show, Season
 from apps.users.models import User
 
 
-class Language(models.TextChoices):
-    HEBREW = 'he', 'Hebrew'
-    ENGLISH = 'en', 'English'
+class Character(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # character_ref: show-defined ID (e.g. 'c1', 'c2'); same ref = same character concept
+    character_ref = models.CharField(max_length=100, db_index=True)
+    name = models.CharField(max_length=255)
+    actor = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['character_ref', 'actor'],
+                name='unique_character_ref_actor',
+            )
+        ]
+        ordering = ['name']
+
+    def __str__(self):
+        return f'{self.name} ({self.actor})' if self.actor else self.name
+
+
+class TranscriptLanguage(models.TextChoices):
+    ORIGIN = 'origin', 'Origin'
+    HEBREW = 'hebrew', 'Hebrew'
+    ENGLISH = 'english', 'English'
 
 
 class Episode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     primary_show = models.ForeignKey(Show, on_delete=models.CASCADE, related_name='episodes')
     seasons = models.ManyToManyField(Season, through='EpisodeSeason', related_name='episodes')
-    episode_number = models.CharField(max_length=20)
+    characters = models.ManyToManyField('Character', related_name='episodes', blank=True)
+    episode_number = models.CharField(max_length=20, db_index=True)
     title = models.CharField(max_length=500)
     air_date = models.DateField(null=True, blank=True)
-    featured_characters = ArrayField(
-        models.CharField(max_length=200), default=list, blank=True
-    )
     original_language = models.CharField(max_length=10, default='auto')
-    raw_excel_path = models.CharField(max_length=1000, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -42,12 +60,12 @@ class EpisodeSeason(models.Model):
         ordering = ['season', 'episode_order']
 
 
-class EpisodeTranslation(models.Model):
+class Transcript(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    episode = models.ForeignKey(Episode, on_delete=models.CASCADE, related_name='translations')
-    language = models.CharField(max_length=5, choices=Language.choices)
-    # Each item: {row_id, original_text, translated_text, row_summary}
-    translated_rows = models.JSONField(default=list)
+    episode = models.ForeignKey(Episode, on_delete=models.CASCADE, related_name='transcripts')
+    language = models.CharField(max_length=10, choices=TranscriptLanguage.choices)
+    # Each item: {character_ref, character_name, text}
+    rows = models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -79,7 +97,6 @@ class ContextualSummary(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='contextual_summaries'
     )
-    # Snapshot of questions text at generation time; used to detect staleness
     questions_snapshot = models.JSONField(default=list)
     summary_text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

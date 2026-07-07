@@ -10,10 +10,10 @@ import TablePageLayout from '../../templates/TablePageLayout';
 import LanguageToggle from '../../atoms/LanguageToggle';
 import StatusBadge from '../../atoms/StatusBadge';
 import { useShow, useShowSeasons } from '../../api/shows';
-import { useEpisodes, useEpisodeTranslations, useEpisodeSummary } from '../../api/episodes';
+import { useEpisodes, useTranscripts, useEpisodeSummary } from '../../api/episodes';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { formatDate } from '../../utils/formatDate';
-import type { Episode, Season, EpisodeTranslation, EpisodeSummary, Language } from '../../types';
+import type { Episode, Season, Transcript, EpisodeSummary, Language } from '../../types';
 
 interface EpisodeRowProps {
   episode: Episode;
@@ -22,11 +22,15 @@ interface EpisodeRowProps {
 function EpisodeRow({ episode }: EpisodeRowProps): JSX.Element {
   const [expanded, setExpanded] = useState<boolean>(false);
   const [lang, setLang] = useState<Language>('en');
-  const { data: translations = [] } = useEpisodeTranslations(expanded ? episode.id : undefined);
+  const { data: transcripts = [] } = useTranscripts(expanded ? episode.id : undefined);
   const { data: summary } = useEpisodeSummary(expanded ? episode.id : undefined);
 
-  const translation = translations.find((t: EpisodeTranslation) => t.language === lang);
-  const transcriptText = translation?.translated_rows?.map((r) => r.text).join('\n') ?? '';
+  const targetLang = lang === 'en' ? 'english' : 'hebrew';
+  const transcript: Transcript | undefined =
+    transcripts.find((t) => t.language === targetLang) ??
+    transcripts.find((t) => t.language === 'origin');
+
+  const transcriptText = transcript?.rows.map((r) => `${r.character_name}: ${r.text}`).join('\n') ?? '';
 
   return (
     <>
@@ -37,8 +41,8 @@ function EpisodeRow({ episode }: EpisodeRowProps): JSX.Element {
         <TableCell sx={{ fontWeight: 600 }}>{episode.title}</TableCell>
         <TableCell>{formatDate(episode.air_date)}</TableCell>
         <TableCell>
-          {episode.featured_characters?.slice(0, 3).map((c: string, i: number) => (
-            <Chip key={i} label={c} size="small" sx={{ mr: 0.5, mb: 0.25 }} />
+          {episode.characters.slice(0, 3).map((c, i) => (
+            <Chip key={i} label={c.name} size="small" sx={{ mr: 0.5, mb: 0.25 }} />
           ))}
         </TableCell>
         <TableCell>
@@ -62,19 +66,21 @@ function EpisodeRow({ episode }: EpisodeRowProps): JSX.Element {
               <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
                 {transcriptText ? (
                   <Box sx={{ flex: 1, minWidth: 280 }}>
-                    <Typography fontWeight={700} mb={1} variant="body2">Transcript ({lang.toUpperCase()})</Typography>
+                    <Typography fontWeight={700} mb={1} variant="body2">
+                      Transcript ({transcript?.language === 'origin' ? 'Original' : lang.toUpperCase()})
+                    </Typography>
                     <Typography variant="body2" lineHeight={1.7} color="text.secondary"
                       sx={{ maxHeight: 200, overflowY: 'auto', whiteSpace: 'pre-wrap', p: 1.5, bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
                       {transcriptText}
                     </Typography>
                   </Box>
-                ) : <Typography variant="body2" color="text.secondary">No translation available.</Typography>}
+                ) : <Typography variant="body2" color="text.secondary">No transcript available.</Typography>}
                 {summary && (
                   <Box sx={{ flex: 1, minWidth: 280 }}>
                     <Typography fontWeight={700} mb={1} variant="body2">Summary</Typography>
                     <Typography variant="body2" lineHeight={1.7} color="text.secondary"
                       sx={{ maxHeight: 200, overflowY: 'auto', p: 1.5, bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
-                      {summary.summary_text}
+                      {(summary as EpisodeSummary).summary_text}
                     </Typography>
                   </Box>
                 )}
@@ -101,14 +107,14 @@ export default function SummaryTablePage(): JSX.Element {
     const matchSearch = !search ||
       ep.title.toLowerCase().includes(search.toLowerCase()) ||
       ep.episode_number.includes(search) ||
-      ep.featured_characters?.some((c: string) => c.toLowerCase().includes(search.toLowerCase()));
+      ep.characters.some((c) => c.name.toLowerCase().includes(search.toLowerCase()));
     return matchSearch;
   });
 
   return (
     <TablePageLayout
       title={`${show?.name ?? ''} — Summary Table`}
-      subtitle="Browse translated transcripts and summaries for all episodes."
+      subtitle="Browse transcripts and summaries for all episodes."
       filterBar={
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <TextField

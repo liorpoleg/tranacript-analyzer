@@ -4,13 +4,14 @@ import type { JobStatus } from '../types';
 
 interface StatusBadgeProps {
   status: JobStatus;
+  label?: string;
 }
 
-export default function StatusBadge({ status }: StatusBadgeProps): JSX.Element {
+export default function StatusBadge({ status, label }: StatusBadgeProps): JSX.Element {
   const colors = STATUS_COLORS[status] ?? { bg: '#f3f4f6', color: '#6b7280' };
   return (
     <Chip
-      label={status}
+      label={label ?? status}
       size="small"
       sx={{
         background: colors.bg,

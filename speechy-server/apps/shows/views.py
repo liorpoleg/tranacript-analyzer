@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 from .models import Show, Season
 from .serializers import ShowSerializer, ShowDetailSerializer, SeasonSerializer
@@ -91,3 +92,27 @@ class SeasonViewSet(viewsets.ModelViewSet):
         season = self.get_object()
         episodes = season.episodes.all().select_related('primary_show')
         return Response({'data': EpisodeSerializer(episodes, many=True).data, 'error': None})
+
+    @action(detail=True, methods=['post'], url_path='upload',
+            parser_classes=[MultiPartParser, FormParser])
+    def upload(self, request, pk=None):
+        season = self.get_object()
+        file = request.FILES.get('file')
+        if not file:
+            return Response(
+                {'data': None, 'error': {'code': 400, 'message': 'No file provided.'}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        from apps.episodes.services import parse_season_excel
+        from apps.processing.services import enqueue_job
+        episodes = parse_season_excel(file, season, season.show)
+        for ep in episodes:
+            enqueue_job(ep, 'translate', request.user)
+            enqueue_job(ep, 'summarize', request.user)
+        return Response({
+            'data': {
+                'episodes_created': len(episodes),
+                'episode_ids': [str(ep.id) for ep in episodes],
+            },
+            'error': None,
+        }, status=status.HTTP_201_CREATED)

@@ -8,32 +8,27 @@ import { useEpisode } from '../../api/episodes';
 import { buildRoute } from '../../constants/routes';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import OverviewTab from './tabs/OverviewTab';
+import TranscriptTab from './tabs/TranscriptTab';
 import TranslateTab from './tabs/TranslateTab';
 import SummaryTab from './tabs/SummaryTab';
 import ContextualTab from './tabs/ContextualTab';
-import FilesTab from './tabs/FilesTab';
 import SettingsTab from './tabs/SettingsTab';
 import type { Episode } from '../../types';
 
-type TabKey = 'overview' | 'translate' | 'summary' | 'contextual' | 'files' | 'settings';
-
-interface EpisodeWithMeta extends Episode {
-  primary_show_name?: string;
-  has_summary?: boolean;
-}
+type TabKey = 'overview' | 'transcript' | 'translate' | 'summary' | 'contextual' | 'settings';
 
 interface TabComponentProps {
-  episode: EpisodeWithMeta;
+  episode: Episode;
   onTabChange: (tab: string) => void;
 }
 
 const TAB_COMPONENTS: Record<TabKey, React.ComponentType<TabComponentProps>> = {
-  overview: OverviewTab,
-  translate: TranslateTab,
-  summary: SummaryTab,
+  overview:   OverviewTab,
+  transcript: TranscriptTab,
+  translate:  TranslateTab,
+  summary:    SummaryTab,
   contextual: ContextualTab,
-  files: FilesTab,
-  settings: SettingsTab,
+  settings:   SettingsTab,
 };
 
 export default function EpisodePage(): JSX.Element {
@@ -49,8 +44,7 @@ export default function EpisodePage(): JSX.Element {
   }
 
   const TabComponent = TAB_COMPONENTS[activeTab];
-  const lastJob = null;
-  const ep = episode as EpisodeWithMeta | undefined;
+  const ep = episode;
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>

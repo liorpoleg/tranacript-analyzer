@@ -1,5 +1,5 @@
 import { Box, Button } from '@mui/material';
-import { HouseSimple, Translate, TextAlignLeft, ChatText, Folder, Gear, Brain } from '@phosphor-icons/react';
+import { HouseSimple, FileText, Translate, TextAlignLeft, Brain, Gear } from '@phosphor-icons/react';
 
 interface Tab {
   key: string;
@@ -8,12 +8,12 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  { key: 'overview', label: 'Overview', icon: <HouseSimple size={18} /> },
-  { key: 'translate', label: 'Translate', icon: <Translate size={18} /> },
-  { key: 'summary', label: 'Summary', icon: <TextAlignLeft size={18} /> },
-  { key: 'contextual', label: 'Contextual', icon: <Brain size={18} /> },
-  { key: 'files', label: 'Files', icon: <Folder size={18} /> },
-  { key: 'settings', label: 'Settings', icon: <Gear size={18} /> },
+  { key: 'overview',    label: 'Overview',     icon: <HouseSimple size={18} /> },
+  { key: 'transcript',  label: 'Transcript',   icon: <FileText size={18} /> },
+  { key: 'translate',   label: 'Translations', icon: <Translate size={18} /> },
+  { key: 'summary',     label: 'Summary',      icon: <TextAlignLeft size={18} /> },
+  { key: 'contextual',  label: 'Contextual',   icon: <Brain size={18} /> },
+  { key: 'settings',    label: 'Settings',     icon: <Gear size={18} /> },
 ];
 
 interface SidebarNavProps {

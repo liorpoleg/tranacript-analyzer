@@ -3,14 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Card, CardContent, Typography, Button, Divider,
   Table, TableBody, TableCell, TableHead, TableRow,
-  CircularProgress, Chip, IconButton, Stack,
+  CircularProgress, Chip, IconButton, Stack, Collapse,
 } from '@mui/material';
-import { Plus, ArrowLeft, ArrowRight, Table as TableIcon, Gear } from '@phosphor-icons/react';
+import { Plus, ArrowLeft, ArrowRight, Table as TableIcon, Gear, Upload, CaretDown, CaretRight } from '@phosphor-icons/react';
 import PageLayout from '../../templates/PageLayout';
 import AppButton from '../../atoms/AppButton';
 import AppModal from '../../atoms/AppModal';
 import { useShow, useShowSeasons, useCreateSeason } from '../../api/shows';
-import { useSeasonEpisodes, useCreateEpisode } from '../../api/episodes';
+import { useSeasonEpisodes, useCreateEpisode, useSeasonUpload } from '../../api/episodes';
 import { useShowQuestions } from '../../api/questions';
 import { useShowKnowledge } from '../../api/knowledge';
 import { useToast } from '../../contexts/ToastContext';
@@ -38,7 +38,9 @@ function SeasonSection({ season, showId }: SeasonSectionProps): JSX.Element {
   const toast = useToast();
   const { data: episodes = [], isLoading } = useSeasonEpisodes(season.id);
   const createEpisode = useCreateEpisode();
+  const seasonUpload = useSeasonUpload(season.id);
   const [open, setOpen] = useState<boolean>(false);
+  const [collapsed, setCollapsed] = useState<boolean>(true);
   const [form, setForm] = useState<EpisodeFormState>({ episode_number: '', title: '', air_date: '' });
 
   const handleCreate = async (): Promise<void> => {
@@ -52,13 +54,41 @@ function SeasonSection({ season, showId }: SeasonSectionProps): JSX.Element {
     }
   };
 
+  const handleSeasonUpload = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const result = await seasonUpload.mutateAsync(file);
+      toast.show(`Uploaded ${result.episodes_created} episode(s)!`, 'success');
+    } catch {
+      toast.show('Season upload failed.', 'error');
+    }
+    e.target.value = '';
+  };
+
   return (
     <>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-        <Typography fontWeight={700}>
-          Season {season.number}{season.title ? ` — ${season.title}` : ''}
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+      <Box
+        onClick={() => setCollapsed((c) => !c)}
+        sx={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          mb: collapsed ? 2 : 1, px: 1.5, py: 1.25, borderRadius: 2,
+          cursor: 'pointer', userSelect: 'none',
+          '&:hover': { bgcolor: 'background.default' },
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {collapsed ? <CaretRight size={15} weight="bold" /> : <CaretDown size={15} weight="bold" />}
+          <Typography fontWeight={700}>
+            Season {season.number}{season.title ? ` — ${season.title}` : ''}
+          </Typography>
+          {collapsed && episodes.length > 0 && (
+            <Typography variant="body1" color="text.secondary">
+              {episodes.length} episode{episodes.length !== 1 ? 's' : ''}
+            </Typography>
+          )}
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
           <Button
             size="small"
             startIcon={<Gear size={14} />}
@@ -67,12 +97,23 @@ function SeasonSection({ season, showId }: SeasonSectionProps): JSX.Element {
           >
             Season Questions
           </Button>
+          <Button
+            size="small"
+            component="label"
+            startIcon={<Upload size={14} />}
+            disabled={seasonUpload.isLoading}
+            sx={{ color: 'text.secondary', fontSize: '0.75rem' }}
+          >
+            {seasonUpload.isLoading ? 'Uploading…' : 'Upload Season'}
+            <input type="file" hidden accept=".xlsx,.xls" onChange={handleSeasonUpload} />
+          </Button>
           <AppButton size="small" startIcon={<Plus size={14} />} onClick={() => setOpen(true)}>
             Add Episode
           </AppButton>
         </Box>
       </Box>
 
+      <Collapse in={!collapsed}>
       <Card sx={{ mb: 3, overflow: 'hidden' }}>
         <Table size="small">
           <TableHead>
@@ -104,6 +145,7 @@ function SeasonSection({ season, showId }: SeasonSectionProps): JSX.Element {
           </TableBody>
         </Table>
       </Card>
+      </Collapse>
 
       <AppModal open={open} onClose={() => setOpen(false)} title="Add Episode" onConfirm={handleCreate} confirmLabel="Create" loading={createEpisode.isLoading}>
         <Stack spacing={2}>

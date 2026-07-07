@@ -70,32 +70,3 @@ def mark_failed(job: ProcessingJob, error: str):
     job.save(update_fields=['status', 'completed_at'])
 
 
-def read_transcript_rows(excel_path: str) -> list[dict]:
-    """Read Excel transcript; returns list of {row_id, text} dicts."""
-    from pathlib import Path
-    import openpyxl
-    media_root = Path(settings.MEDIA_ROOT)
-    full_path = media_root / excel_path
-    wb = openpyxl.load_workbook(str(full_path), read_only=True, data_only=True)
-    ws = wb.active
-    rows = []
-    headers = None
-    for i, row in enumerate(ws.iter_rows(values_only=True)):
-        if i == 0:
-            headers = [str(c).strip() if c else f'col_{j}' for j, c in enumerate(row)]
-            continue
-        row_dict = dict(zip(headers, row))
-        text = ''
-        for key in ('text', 'transcript', 'dialogue', 'content', 'line'):
-            if key in row_dict and row_dict[key]:
-                text = str(row_dict[key])
-                break
-        if not text:
-            # Fall back to last non-empty string column
-            for val in reversed(list(row_dict.values())):
-                if val and isinstance(val, str) and len(val) > 10:
-                    text = val
-                    break
-        rows.append({'row_id': i, 'original_text': text, 'metadata': row_dict})
-    wb.close()
-    return rows

@@ -2,6 +2,7 @@ export type UserRole = 'admin' | 'manager' | 'analyst';
 export type JobStatus = 'pending' | 'running' | 'completed' | 'failed' | 'stopped';
 export type JobType = 'translate' | 'summarize' | 'contextual_summary';
 export type Language = 'he' | 'en';
+export type TranscriptLanguage = 'origin' | 'hebrew' | 'english';
 export type ToastSeverity = 'success' | 'error' | 'info' | 'warning';
 
 export interface Organization {
@@ -48,37 +49,47 @@ export interface Season {
   created_at: string;
 }
 
+export interface Character {
+  id: string;
+  character_ref: string;
+  name: string;
+  actor: string;
+}
+
 export interface Episode {
   id: string;
   primary_show: string;
-  show_name: string;
+  primary_show_name: string;
   episode_number: string;
   title: string;
   air_date: string | null;
-  featured_characters: string[];
   original_language: string;
-  raw_excel_path: string | null;
+  characters: Character[];
+  has_origin_transcript: boolean;
   has_translation_en: boolean;
   has_translation_he: boolean;
   has_summary?: boolean;
+  season_memberships: Array<{
+    season: string;
+    season_number: number;
+    show_name: string;
+    episode_order: number | null;
+  }>;
   created_at: string;
   updated_at: string;
 }
 
-export interface TranslationRow {
-  scene_id?: string;
-  timecode?: string;
-  character?: string;
+export interface TranscriptRow {
+  character_ref: string;
+  character_name: string;
   text: string;
-  notes?: string;
-  [key: string]: unknown;
 }
 
-export interface EpisodeTranslation {
+export interface Transcript {
   id: string;
   episode: string;
-  language: Language;
-  translated_rows: TranslationRow[];
+  language: TranscriptLanguage;
+  rows: TranscriptRow[];
   created_at: string;
   updated_at: string;
 }

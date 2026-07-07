@@ -6,10 +6,6 @@ import { useJobs } from '../../../api/jobs';
 import { formatDate } from '../../../utils/formatDate';
 import type { Episode } from '../../../types';
 
-interface EpisodeWithMeta extends Episode {
-  has_summary?: boolean;
-}
-
 interface QuickActionProps {
   icon: React.ReactNode;
   label: string;
@@ -37,7 +33,7 @@ function QuickAction({ icon, label, desc, onClick }: QuickActionProps): JSX.Elem
 }
 
 interface OverviewTabProps {
-  episode: EpisodeWithMeta;
+  episode: Episode;
   onTabChange: (tab: string) => void;
 }
 
@@ -55,7 +51,7 @@ export default function OverviewTab({ episode, onTabChange }: OverviewTabProps):
             {([
               ['Air Date', formatDate(episode?.air_date)],
               ['Original Language', episode?.original_language || 'Unknown'],
-              ['Featured Characters', episode?.featured_characters?.join(', ') || '—'],
+              ['Characters', episode?.characters?.map((c) => c.name).join(', ') || '—'],
               ['Has English', episode?.has_translation_en ? 'Yes' : 'No'],
               ['Has Hebrew', episode?.has_translation_he ? 'Yes' : 'No'],
               ['Has Summary', episode?.has_summary ? 'Yes' : 'No'],
@@ -72,8 +68,8 @@ export default function OverviewTab({ episode, onTabChange }: OverviewTabProps):
       </Card>
 
       <Grid container spacing={1.5} mb={2}>
-        <Grid item xs={12} sm={4}><QuickAction icon={<Translate size={21} />} label="Translate" desc="Upload & translate this episode's transcript." onClick={() => onTabChange('translate')} /></Grid>
-        <Grid item xs={12} sm={4}><QuickAction icon={<TextAlignLeft size={21} />} label="Summarize" desc="Generate a straightforward episode summary." onClick={() => onTabChange('summary')} /></Grid>
+        <Grid item xs={12} sm={4}><QuickAction icon={<Translate size={21} />} label="Transcript" desc="Upload transcript — translation and summary start automatically." onClick={() => onTabChange('transcript')} /></Grid>
+        <Grid item xs={12} sm={4}><QuickAction icon={<TextAlignLeft size={21} />} label="Translations" desc="View Hebrew and English translations." onClick={() => onTabChange('translate')} /></Grid>
         <Grid item xs={12} sm={4}><QuickAction icon={<Brain size={21} />} label="Contextual" desc="Generate a contextual summary with your questions." onClick={() => onTabChange('contextual')} /></Grid>
       </Grid>
 

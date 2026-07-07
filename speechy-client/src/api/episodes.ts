@@ -3,7 +3,7 @@ import client from './client';
 import { API } from '../constants/api';
 import type {
   Episode,
-  EpisodeTranslation,
+  Transcript,
   EpisodeSummary,
   ContextualSummary,
   ProcessingJob,
@@ -72,9 +72,16 @@ export function useDeleteEpisode() {
   });
 }
 
+interface UploadResult {
+  transcript_id: string;
+  row_count: number;
+  translate_job: ProcessingJob;
+  summarize_job: ProcessingJob;
+}
+
 export function useUploadTranscript(episodeId: string) {
   const qc = useQueryClient();
-  return useMutation<Episode, Error, File>({
+  return useMutation<UploadResult, Error, File>({
     mutationFn: (file: File) => {
       const form = new FormData();
       form.append('file', file);
@@ -84,7 +91,29 @@ export function useUploadTranscript(episodeId: string) {
         })
         .then((r) => r.data.data);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['episode', episodeId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['episode', episodeId] });
+      qc.invalidateQueries({ queryKey: ['episode-transcripts', episodeId] });
+    },
+  });
+}
+
+export function useSeasonUpload(seasonId: string) {
+  const qc = useQueryClient();
+  return useMutation<{ episodes_created: number; episode_ids: string[] }, Error, File>({
+    mutationFn: (file: File) => {
+      const form = new FormData();
+      form.append('file', file);
+      return client
+        .post(API.SEASON_UPLOAD(seasonId), form, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+        .then((r) => r.data.data);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['episodes'] });
+      qc.invalidateQueries({ queryKey: ['season-episodes', seasonId] });
+    },
   });
 }
 
@@ -115,16 +144,19 @@ export function useContextualSummary(episodeId: string) {
   });
 }
 
-export function useEpisodeTranslations(episodeId: string | undefined) {
-  return useQuery<EpisodeTranslation[], Error>({
-    queryKey: ['episode-translations', episodeId],
+export function useTranscripts(episodeId: string | undefined) {
+  return useQuery<Transcript[], Error>({
+    queryKey: ['episode-transcripts', episodeId],
     queryFn: () =>
       client
-        .get(API.EPISODE_TRANSLATIONS(episodeId as string))
+        .get(API.EPISODE_TRANSCRIPTS(episodeId as string))
         .then((r) => r.data.data),
     enabled: !!episodeId,
   });
 }
+
+// Backward-compat alias
+export const useEpisodeTranslations = useTranscripts;
 
 export function useEpisodeSummary(episodeId: string | undefined) {
   return useQuery<EpisodeSummary, Error>({

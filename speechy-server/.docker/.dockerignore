@@ -1,0 +1,18 @@
+# Used at repo-root build context — ignores things that shouldn't enter the image
+speechy-client/
+examples/
+.git/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+*.env.*
+!*.env.example
+db.sqlite3
+media/
+staticfiles/
+.pytest_cache/
+.mypy_cache/
+node_modules/

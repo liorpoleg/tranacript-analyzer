@@ -18,8 +18,11 @@ class ProcessingJobViewSet(viewsets.ReadOnlyModelViewSet):
     def list(self, request, *args, **kwargs):
         qs = self.get_queryset()
         episode_id = request.query_params.get('episode')
+        season_id = request.query_params.get('season')
         if episode_id:
             qs = qs.filter(episode_id=episode_id)
+        if season_id:
+            qs = qs.filter(episode__episodeseason__season_id=season_id).distinct()
         return Response({'data': ProcessingJobSerializer(qs, many=True).data, 'error': None})
 
     def retrieve(self, request, *args, **kwargs):

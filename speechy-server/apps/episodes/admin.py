@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Episode, EpisodeSeason, EpisodeTranslation, EpisodeSummary, ContextualSummary
+from .models import Episode, EpisodeSeason, Character, Transcript, EpisodeSummary, ContextualSummary
+
+
+@admin.register(Character)
+class CharacterAdmin(admin.ModelAdmin):
+    list_display = ['name', 'character_ref', 'actor']
+    search_fields = ['name', 'character_ref', 'actor']
 
 
 @admin.register(Episode)
@@ -9,8 +15,8 @@ class EpisodeAdmin(admin.ModelAdmin):
     search_fields = ['title', 'episode_number']
 
 
-@admin.register(EpisodeTranslation)
-class EpisodeTranslationAdmin(admin.ModelAdmin):
+@admin.register(Transcript)
+class TranscriptAdmin(admin.ModelAdmin):
     list_display = ['episode', 'language', 'created_at']
     list_filter = ['language']
 

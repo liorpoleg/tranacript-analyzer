@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import client from './client';
 import { API } from '../constants/api';
+import { TERMINAL_STATUSES } from '../constants/jobStatus';
 import type { ProcessingJob } from '../types';
 
 export function useJobs(params: Record<string, unknown> = {}) {
@@ -15,6 +16,19 @@ export function useJob(id: string | undefined) {
     queryKey: ['job', id],
     queryFn: () => client.get(API.JOB(id as string)).then((r) => r.data.data),
     enabled: !!id,
+  });
+}
+
+export function useSeasonJobs(seasonId: string | undefined) {
+  return useQuery<ProcessingJob[], Error>({
+    queryKey: ['jobs', { seasonId }],
+    queryFn: () =>
+      client.get(API.JOBS, { params: { season: seasonId } }).then((r) => r.data.data),
+    enabled: !!seasonId,
+    refetchInterval: (data) => {
+      if (!data) return false;
+      return data.some((j) => !TERMINAL_STATUSES.has(j.status)) ? 2000 : false;
+    },
   });
 }
 

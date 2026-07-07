@@ -1,5 +1,12 @@
 from rest_framework import serializers
-from .models import Episode, EpisodeSeason, EpisodeTranslation, EpisodeSummary, ContextualSummary
+from .models import Episode, EpisodeSeason, Transcript, EpisodeSummary, ContextualSummary, Character
+
+
+class CharacterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Character
+        fields = ['id', 'character_ref', 'name', 'actor']
+        read_only_fields = ['id']
 
 
 class EpisodeSeasonSerializer(serializers.ModelSerializer):
@@ -16,6 +23,8 @@ class EpisodeSerializer(serializers.ModelSerializer):
     season_memberships = EpisodeSeasonSerializer(
         source='episodeseason_set', many=True, read_only=True
     )
+    characters = CharacterSerializer(many=True, read_only=True)
+    has_origin_transcript = serializers.SerializerMethodField()
     has_translation_he = serializers.SerializerMethodField()
     has_translation_en = serializers.SerializerMethodField()
     has_summary = serializers.SerializerMethodField()
@@ -24,26 +33,30 @@ class EpisodeSerializer(serializers.ModelSerializer):
         model = Episode
         fields = [
             'id', 'primary_show', 'primary_show_name', 'episode_number', 'title',
-            'air_date', 'featured_characters', 'original_language', 'raw_excel_path',
-            'season_memberships', 'has_translation_he', 'has_translation_en', 'has_summary',
+            'air_date', 'original_language', 'characters',
+            'season_memberships', 'has_origin_transcript',
+            'has_translation_he', 'has_translation_en', 'has_summary',
             'created_at', 'updated_at',
         ]
-        read_only_fields = ['id', 'raw_excel_path', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_has_origin_transcript(self, obj):
+        return obj.transcripts.filter(language='origin').exists()
 
     def get_has_translation_he(self, obj):
-        return obj.translations.filter(language='he').exists()
+        return obj.transcripts.filter(language='hebrew').exists()
 
     def get_has_translation_en(self, obj):
-        return obj.translations.filter(language='en').exists()
+        return obj.transcripts.filter(language='english').exists()
 
     def get_has_summary(self, obj):
         return hasattr(obj, 'summary')
 
 
-class EpisodeTranslationSerializer(serializers.ModelSerializer):
+class TranscriptSerializer(serializers.ModelSerializer):
     class Meta:
-        model = EpisodeTranslation
-        fields = ['id', 'episode', 'language', 'translated_rows', 'created_at', 'updated_at']
+        model = Transcript
+        fields = ['id', 'episode', 'language', 'rows', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
