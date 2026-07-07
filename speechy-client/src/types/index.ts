@@ -1,0 +1,178 @@
+export type UserRole = 'admin' | 'manager' | 'analyst';
+export type JobStatus = 'pending' | 'running' | 'completed' | 'failed' | 'stopped';
+export type JobType = 'translate' | 'summarize' | 'contextual_summary';
+export type Language = 'he' | 'en';
+export type ToastSeverity = 'success' | 'error' | 'info' | 'warning';
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  max_episodes: number;
+  max_users: number;
+  max_storage_mb: number;
+  created_at: string;
+}
+
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  role: UserRole;
+  organization: string;
+  organization_name: string;
+  is_active: boolean;
+  date_joined: string;
+  last_login: string | null;
+}
+
+export interface Show {
+  id: string;
+  name: string;
+  description: string;
+  organization: string;
+  organization_name: string;
+  season_count: number;
+  episode_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Season {
+  id: string;
+  show: string;
+  show_name: string;
+  number: number;
+  title: string;
+  episode_count: number;
+  created_at: string;
+}
+
+export interface Episode {
+  id: string;
+  primary_show: string;
+  show_name: string;
+  episode_number: string;
+  title: string;
+  air_date: string | null;
+  featured_characters: string[];
+  original_language: string;
+  raw_excel_path: string | null;
+  has_translation_en: boolean;
+  has_translation_he: boolean;
+  has_summary?: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TranslationRow {
+  scene_id?: string;
+  timecode?: string;
+  character?: string;
+  text: string;
+  notes?: string;
+  [key: string]: unknown;
+}
+
+export interface EpisodeTranslation {
+  id: string;
+  episode: string;
+  language: Language;
+  translated_rows: TranslationRow[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EpisodeSummary {
+  id: string;
+  episode: string;
+  summary_text: string;
+  key_topics: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Question {
+  id: string;
+  show: string | null;
+  season: string | null;
+  text: string;
+  order_index: number;
+  is_active: boolean;
+}
+
+export interface ContextualSummary {
+  id: string;
+  episode: string;
+  user: string;
+  summary_text: string;
+  questions_snapshot: Question[];
+  created_at: string;
+}
+
+export interface KnowledgeFile {
+  id: string;
+  show: string | null;
+  season: string | null;
+  original_filename: string;
+  file_path: string;
+  content_text: string;
+  created_at: string;
+}
+
+export interface ProcessingJob {
+  id: string;
+  episode: string;
+  episode_title: string;
+  job_type: JobType;
+  status: JobStatus;
+  triggered_by: string;
+  triggered_by_username: string;
+  log_lines: string[];
+  started_at: string | null;
+  completed_at: string | null;
+  duration_seconds?: number;
+  created_at: string;
+}
+
+export interface APIKey {
+  id: string;
+  name: string;
+  key_prefix: string;
+  is_active: boolean;
+  created_at: string;
+  revoked_at: string | null;
+  key?: string;
+}
+
+export interface UserSession {
+  id: string;
+  username: string;
+  ip_address: string | null;
+  user_agent: string;
+  login_at: string;
+  last_active_at: string;
+  is_active: boolean;
+}
+
+export interface AuditLog {
+  id: string;
+  username: string | null;
+  action: string;
+  resource_type: string;
+  resource_id: string;
+  details: Record<string, unknown>;
+  timestamp: string;
+}
+
+export interface ApiResponse<T> {
+  data: T | null;
+  error: { code: number; message: string } | null;
+}
+
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
