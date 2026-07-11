@@ -5,7 +5,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 from .models import Show, Season
 from .serializers import ShowSerializer, ShowDetailSerializer, SeasonSerializer
-from .services import get_shows_for_user, create_show, create_season
+from .services import get_shows_for_user, create_show, create_season, search_show
 from apps.episodes.serializers import EpisodeSerializer
 
 
@@ -53,6 +53,13 @@ class ShowViewSet(viewsets.ModelViewSet):
         season = s.save()
         return Response({'data': SeasonSerializer(season).data, 'error': None},
                         status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['get'], url_path='search')
+    def search(self, request, pk=None):
+        show = self.get_object()
+        query = request.query_params.get('q', '')
+        results = search_show(show, query)
+        return Response({'data': results, 'error': None})
 
 
 class SeasonViewSet(viewsets.ModelViewSet):

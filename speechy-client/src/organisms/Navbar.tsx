@@ -1,10 +1,17 @@
-import { AppBar, Toolbar, Box, Typography, Avatar, Menu, MenuItem, Divider, IconButton } from '@mui/material';
-import { useState } from 'react';
+import {
+  AppBar, Toolbar, Box, Typography, Avatar, Menu, MenuItem, Divider, IconButton,
+  Select, InputBase, Paper, ClickAwayListener, CircularProgress,
+} from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material/Select';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { SquaresFour, BookOpen, SignOut, Key, CaretDown } from '@phosphor-icons/react';
+import { SquaresFour, BookOpen, SignOut, Key, CaretDown, MagnifyingGlass } from '@phosphor-icons/react';
 import { useAuth } from '../hooks/useAuth';
 import { useLogout } from '../api/auth';
-import { ROUTES } from '../constants/routes';
+import { useShows, useShowSearch } from '../api/shows';
+import { useDebounce } from '../hooks/useDebounce';
+import HighlightedText from '../atoms/HighlightedText';
+import { ROUTES, buildRoute } from '../constants/routes';
 import logo from '../assets/logo2.png';
 
 interface NavLink {
@@ -31,6 +38,53 @@ export default function Navbar(): JSX.Element {
   const logout = useLogout();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
 
+  const { data: shows } = useShows();
+  const [selectedShowId, setSelectedShowId] = useState('');
+  const [query, setQuery] = useState('');
+  const [resultsOpen, setResultsOpen] = useState(false);
+  const debouncedQuery = useDebounce(query, 300);
+  const trimmedQuery = debouncedQuery.trim();
+  const hasPrefix = trimmedQuery.startsWith('@') || trimmedQuery.startsWith('#');
+  const highlightTerm = hasPrefix ? trimmedQuery.slice(1).trim() : trimmedQuery;
+  const { data: results, isFetching: searching } = useShowSearch(selectedShowId || undefined, debouncedQuery);
+
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const resultRefs = useRef<Array<HTMLDivElement | null>>([]);
+
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [debouncedQuery, selectedShowId]);
+
+  useEffect(() => {
+    if (highlightedIndex >= 0) {
+      resultRefs.current[highlightedIndex]?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [highlightedIndex]);
+
+  const goToResult = (episodeId: string): void => {
+    navigate(buildRoute.episode(episodeId));
+    setResultsOpen(false);
+    setQuery('');
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    if (!results || results.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (prev + 1) % results.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (prev - 1 + results.length) % results.length);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightedIndex >= 0 && highlightedIndex < results.length) {
+        goToResult(results[highlightedIndex].episode_id);
+      }
+    } else if (e.key === 'Escape') {
+      setResultsOpen(false);
+    }
+  };
+
   const initials = user?.username?.slice(0, 2).toUpperCase() ?? '??';
   const avatarColor = getAvatarColor(user?.username);
 
@@ -41,7 +95,7 @@ export default function Navbar(): JSX.Element {
       elevation={0}
       sx={{ borderBottom: '1px solid', borderColor: 'divider', zIndex: 50, bgcolor: 'background.paper' }}
     >
-      <Toolbar sx={{ gap: 1, height: 60, minHeight: '60px !important', px: { xs: 2, md: 4 } }}>
+      <Toolbar sx={{ position: 'relative', gap: 1, height: 60, minHeight: '60px !important', px: { xs: 2, md: 4 } }}>
         <Box
           onClick={() => navigate(ROUTES.DASHBOARD)}
           sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer', mr: 2, flexShrink: 0 }}
@@ -81,6 +135,128 @@ export default function Navbar(): JSX.Element {
               </Box>
             );
           })}
+        </Box>
+
+        <Box
+          sx={{
+            display: { xs: 'none', md: 'block' },
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '100%',
+            maxWidth: 520,
+            px: 2,
+          }}
+        >
+          <ClickAwayListener onClickAway={() => setResultsOpen(false)}>
+            <Box sx={{ position: 'relative', width: '100%' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  bgcolor: 'background.paper',
+                  pl: 1.5,
+                  transition: 'border-color 0.15s, box-shadow 0.15s',
+                  '&:focus-within': {
+                    borderColor: 'primary.main',
+                    boxShadow: '0 0 0 3px rgba(33,150,243,0.12)',
+                  },
+                }}
+              >
+                <MagnifyingGlass size={16} style={{ flexShrink: 0, color: '#94A3B8' }} />
+                <InputBase
+                  fullWidth
+                  size="small"
+                  placeholder={selectedShowId ? 'Search transcripts, @character, or #tag' : 'Select a show to search'}
+                  value={query}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setQuery(e.target.value);
+                    setResultsOpen(true);
+                  }}
+                  onFocus={() => setResultsOpen(true)}
+                  onKeyDown={handleSearchKeyDown}
+                  sx={{ ml: 1, fontSize: '0.875rem', flex: 1 }}
+                />
+                <Divider orientation="vertical" flexItem sx={{ my: 1 }} />
+                <Select
+                  size="small"
+                  displayEmpty
+                  variant="standard"
+                  disableUnderline
+                  value={selectedShowId}
+                  onChange={(e: SelectChangeEvent) => setSelectedShowId(e.target.value)}
+                  sx={{
+                    minWidth: 110, maxWidth: 160, flexShrink: 0, fontSize: '0.8rem', pl: 1.25, pr: 0.5,
+                    '& .MuiSelect-select': { py: 0.75 },
+                  }}
+                >
+                  <MenuItem value="">
+                    <Typography variant="body2" color="text.secondary">Show…</Typography>
+                  </MenuItem>
+                  {(shows ?? []).map((show) => (
+                    <MenuItem key={show.id} value={show.id}>{show.name}</MenuItem>
+                  ))}
+                </Select>
+              </Box>
+
+              {resultsOpen && query.trim().length > 0 && (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    position: 'absolute', top: '100%', left: 0, right: 0, mt: 0.5,
+                    border: '1px solid', borderColor: 'divider', borderRadius: 3,
+                    maxHeight: 360, overflowY: 'auto', zIndex: 60,
+                    boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
+                  }}
+                >
+                  {!selectedShowId ? (
+                    <Box sx={{ p: 2 }}>
+                      <Typography variant="body2" color="text.secondary">Select a show to search.</Typography>
+                    </Box>
+                  ) : debouncedQuery.trim().length < 2 ? (
+                    <Box sx={{ p: 2 }}>
+                      <Typography variant="body2" color="text.secondary">Keep typing…</Typography>
+                    </Box>
+                  ) : searching ? (
+                    <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+                      <CircularProgress size={20} />
+                    </Box>
+                  ) : !results?.length ? (
+                    <Box sx={{ p: 2 }}>
+                      <Typography variant="body2" color="text.secondary">No results found.</Typography>
+                    </Box>
+                  ) : (
+                    results.map((r, i) => (
+                      <Box
+                        key={`${r.episode_id}-${i}`}
+                        ref={(el: HTMLDivElement | null) => { resultRefs.current[i] = el; }}
+                        onClick={() => goToResult(r.episode_id)}
+                        onMouseEnter={() => setHighlightedIndex(i)}
+                        sx={{
+                          px: 2, py: 1.25, cursor: 'pointer',
+                          borderBottom: i < results.length - 1 ? '1px solid' : 'none',
+                          borderColor: 'divider',
+                          bgcolor: highlightedIndex === i ? '#EFF6FF' : 'transparent',
+                          '&:hover': { bgcolor: '#F8FAFC' },
+                        }}
+                      >
+                        <Typography variant="body2" fontWeight={700}>
+                          {r.episode_number ? `${r.episode_number} — ${r.episode_title}` : r.episode_title}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
+                          <HighlightedText text={r.snippet} term={highlightTerm} />
+                        </Typography>
+                      </Box>
+                    ))
+                  )}
+                </Paper>
+              )}
+            </Box>
+          </ClickAwayListener>
         </Box>
 
         <Box sx={{ flex: 1 }} />

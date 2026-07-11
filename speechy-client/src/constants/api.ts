@@ -12,6 +12,7 @@ export const API = {
   SHOW_SEASONS: (id: string): string => `${BASE}/shows/${id}/seasons/`,
   SHOW_QUESTIONS: (id: string): string => `${BASE}/shows/${id}/questions/`,
   SHOW_KNOWLEDGE: (id: string): string => `${BASE}/shows/${id}/knowledge/`,
+  SHOW_SEARCH: (id: string): string => `${BASE}/shows/${id}/search/`,
   SEASONS: `${BASE}/seasons/`,
   SEASON: (id: string): string => `${BASE}/seasons/${id}/`,
   SEASON_EPISODES: (id: string): string => `${BASE}/seasons/${id}/episodes/`,

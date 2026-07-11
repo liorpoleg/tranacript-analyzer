@@ -94,6 +94,15 @@ export interface Transcript {
   updated_at: string;
 }
 
+export interface SearchResult {
+  episode_id: string;
+  episode_title: string;
+  episode_number: string;
+  snippet: string;
+  character_name: string;
+  language: TranscriptLanguage | null;
+}
+
 export interface EpisodeSummary {
   id: string;
   episode: string;

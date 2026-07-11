@@ -11,6 +11,11 @@ WORKDIR /app
 ARG VITE_API_URL=http://localhost:8000
 ENV VITE_API_URL=$VITE_API_URL
 
+# Optional override so the SSO popup opens a real SSO server instead of
+# speechy-server's own mock endpoint — see DEPLOYMENT.md §5.
+ARG VITE_SSO_URL=
+ENV VITE_SSO_URL=$VITE_SSO_URL
+
 COPY package.json package-lock.json ./
 RUN npm ci --prefer-offline
 

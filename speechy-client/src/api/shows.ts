@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import client from './client';
 import { API } from '../constants/api';
-import type { Show, Season } from '../types';
+import type { Show, Season, SearchResult } from '../types';
 
 export function useShows() {
   return useQuery<Show[], Error>({
@@ -61,6 +61,19 @@ export function useShowSeasons(showId: string | undefined) {
     queryFn: () =>
       client.get(API.SHOW_SEASONS(showId as string)).then((r) => r.data.data),
     enabled: !!showId,
+  });
+}
+
+export function useShowSearch(showId: string | undefined, query: string) {
+  const trimmed = query.trim();
+  return useQuery<SearchResult[], Error>({
+    queryKey: ['show-search', showId, trimmed],
+    queryFn: () =>
+      client
+        .get(API.SHOW_SEARCH(showId as string), { params: { q: trimmed } })
+        .then((r) => r.data.data),
+    enabled: Boolean(showId) && trimmed.length >= 2,
+    staleTime: 10_000,
   });
 }
 
