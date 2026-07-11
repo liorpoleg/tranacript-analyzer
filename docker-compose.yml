@@ -1,0 +1,85 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-speechy}
+      POSTGRES_USER: ${DB_USER:-speechy}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-speechy}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  server-web:
+    build:
+      context: .
+      dockerfile: speechy-server/.docker/Dockerfile
+    restart: unless-stopped
+    command: ["web"]
+    env_file: speechy-server/.env
+    environment:
+      DB_HOST: db
+      REDIS_URL: redis://redis:6379/0
+      PROMPTS_DIR: /prompts
+    ports:
+      - "8000:8000"
+    volumes:
+      - media:/app/media
+      - ./prompts:/prompts:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  server-worker:
+    build:
+      context: .
+      dockerfile: speechy-server/.docker/Dockerfile
+    restart: unless-stopped
+    command: ["worker"]
+    env_file: speechy-server/.env
+    environment:
+      DB_HOST: db
+      REDIS_URL: redis://redis:6379/0
+      PROMPTS_DIR: /prompts
+    volumes:
+      - media:/app/media
+      - ./prompts:/prompts:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  client:
+    build:
+      context: ./speechy-client
+      dockerfile: .docker/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - server-web
+
+volumes:
+  postgres_data:
+  redis_data:
+  media:
