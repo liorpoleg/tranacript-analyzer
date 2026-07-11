@@ -176,6 +176,25 @@ export interface AuditLog {
   timestamp: string;
 }
 
+export type ChatRole = 'user' | 'assistant';
+
+export interface EpisodeRef {
+  id: string;
+  episode_number: string;
+  title: string;
+}
+
+export interface ChatMessage {
+  role: ChatRole;
+  content: string;
+  episodes?: EpisodeRef[];
+}
+
+export interface ChatReply {
+  reply: string;
+  episodes: EpisodeRef[];
+}
+
 export interface ApiResponse<T> {
   data: T | null;
   error: { code: number; message: string } | null;

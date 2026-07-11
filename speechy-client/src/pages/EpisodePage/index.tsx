@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Box, Card, CardContent, Typography, CircularProgress, Breadcrumbs } from '@mui/material';
 import PageLayout from '../../templates/PageLayout';
+import Navbar from '../../organisms/Navbar';
 import SidebarNav from '../../organisms/SidebarNav';
 import StatusBadge from '../../atoms/StatusBadge';
 import { useEpisode } from '../../api/episodes';
@@ -12,10 +13,11 @@ import TranscriptTab from './tabs/TranscriptTab';
 import TranslateTab from './tabs/TranslateTab';
 import SummaryTab from './tabs/SummaryTab';
 import ContextualTab from './tabs/ContextualTab';
+import ChatTab from './tabs/ChatTab';
 import SettingsTab from './tabs/SettingsTab';
 import type { Episode } from '../../types';
 
-type TabKey = 'overview' | 'transcript' | 'translate' | 'summary' | 'contextual' | 'settings';
+type TabKey = 'overview' | 'transcript' | 'translate' | 'summary' | 'contextual' | 'chat' | 'settings';
 
 interface TabComponentProps {
   episode: Episode;
@@ -28,6 +30,7 @@ const TAB_COMPONENTS: Record<TabKey, React.ComponentType<TabComponentProps>> = {
   translate:  TranslateTab,
   summary:    SummaryTab,
   contextual: ContextualTab,
+  chat:       ChatTab,
   settings:   SettingsTab,
 };
 
@@ -48,7 +51,9 @@ export default function EpisodePage(): JSX.Element {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <Box sx={{ position: 'sticky', top: 0, zIndex: 50, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider' }}>
+      <Navbar />
+
+      <Box sx={{ position: 'sticky', top: 60, zIndex: 40, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ maxWidth: 1320, mx: 'auto', px: { xs: 2, md: 5 }, py: 1.5 }}>
           <Breadcrumbs>
             <Link to="/dashboard" style={{ color: '#9aa1ae', textDecoration: 'none', fontWeight: 600, fontSize: 13 }}>Dashboard</Link>
@@ -64,7 +69,7 @@ export default function EpisodePage(): JSX.Element {
 
       <Box sx={{ maxWidth: 1320, mx: 'auto', px: { xs: 2, md: 5 }, py: 3, pb: 8 }}>
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
-          <Box sx={{ width: 236, flexShrink: 0, position: 'sticky', top: 80 }}>
+          <Box sx={{ width: 236, flexShrink: 0, position: 'sticky', top: 116 }}>
             <Card sx={{ mb: 1.5 }}>
               <CardContent sx={{ p: 2 }}>
                 <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.secondary', fontWeight: 700 }}>

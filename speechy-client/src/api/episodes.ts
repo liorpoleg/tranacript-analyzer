@@ -23,6 +23,14 @@ export function useEpisodes(showId?: string) {
   });
 }
 
+export function useSeasonEpisodes(seasonId: string | undefined) {
+  return useQuery<Episode[], Error>({
+    queryKey: ['season-episodes', seasonId],
+    queryFn: () => client.get(API.SEASON_EPISODES(seasonId as string)).then((r) => r.data.data),
+    enabled: !!seasonId,
+  });
+}
+
 export function useEpisode(id: string | undefined) {
   return useQuery<Episode, Error>({
     queryKey: ['episode', id],
@@ -31,14 +39,6 @@ export function useEpisode(id: string | undefined) {
   });
 }
 
-export function useSeasonEpisodes(seasonId: string | undefined) {
-  return useQuery<Episode[], Error>({
-    queryKey: ['season-episodes', seasonId],
-    queryFn: () =>
-      client.get(API.SEASON_EPISODES(seasonId as string)).then((r) => r.data.data),
-    enabled: !!seasonId,
-  });
-}
 
 export function useCreateEpisode() {
   const qc = useQueryClient();

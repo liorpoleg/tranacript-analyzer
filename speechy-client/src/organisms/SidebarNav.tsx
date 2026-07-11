@@ -1,5 +1,5 @@
-import { Box, Button } from '@mui/material';
-import { HouseSimple, FileText, Translate, TextAlignLeft, Brain, Gear } from '@phosphor-icons/react';
+import { Box, Typography } from '@mui/material';
+import { HouseSimple, FileText, Translate, TextAlignLeft, Brain, ChatCircleText, Gear } from '@phosphor-icons/react';
 
 interface Tab {
   key: string;
@@ -8,12 +8,13 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  { key: 'overview',    label: 'Overview',     icon: <HouseSimple size={18} /> },
-  { key: 'transcript',  label: 'Transcript',   icon: <FileText size={18} /> },
-  { key: 'translate',   label: 'Translations', icon: <Translate size={18} /> },
-  { key: 'summary',     label: 'Summary',      icon: <TextAlignLeft size={18} /> },
-  { key: 'contextual',  label: 'Contextual',   icon: <Brain size={18} /> },
-  { key: 'settings',    label: 'Settings',     icon: <Gear size={18} /> },
+  { key: 'overview',   label: 'Overview',     icon: <HouseSimple size={17} /> },
+  { key: 'transcript', label: 'Transcript',   icon: <FileText size={17} /> },
+  { key: 'translate',  label: 'Translations', icon: <Translate size={17} /> },
+  { key: 'summary',    label: 'Summary',      icon: <TextAlignLeft size={17} /> },
+  { key: 'contextual', label: 'Contextual',   icon: <Brain size={17} /> },
+  { key: 'chat',       label: 'Chat',         icon: <ChatCircleText size={17} /> },
+  { key: 'settings',   label: 'Settings',     icon: <Gear size={17} /> },
 ];
 
 interface SidebarNavProps {
@@ -23,26 +24,44 @@ interface SidebarNavProps {
 
 export default function SidebarNav({ active, onChange }: SidebarNavProps): JSX.Element {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-      {TABS.map((tab) => (
-        <Button
-          key={tab.key}
-          startIcon={tab.icon}
-          onClick={() => onChange(tab.key)}
-          sx={{
-            justifyContent: 'flex-start',
-            px: 1.75,
-            py: 1.25,
-            borderRadius: 2,
-            fontWeight: active === tab.key ? 700 : 600,
-            color: active === tab.key ? 'primary.main' : 'text.secondary',
-            bgcolor: active === tab.key ? 'primary.50' : 'transparent',
-            '&:hover': { bgcolor: active === tab.key ? 'primary.50' : 'background.default' },
-          }}
-        >
-          {tab.label}
-        </Button>
-      ))}
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+      {TABS.map((tab) => {
+        const isActive = active === tab.key;
+        return (
+          <Box
+            key={tab.key}
+            onClick={() => onChange(tab.key)}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.25,
+              px: 1.5,
+              py: 1.1,
+              borderRadius: 2.5,
+              cursor: 'pointer',
+              bgcolor: isActive ? '#e3f2fd' : 'transparent',
+              color: isActive ? 'primary.main' : 'text.secondary',
+              transition: 'background 0.12s ease, color 0.12s ease',
+              '&:hover': {
+                bgcolor: isActive ? '#e3f2fd' : 'rgba(0,0,0,0.04)',
+                color: isActive ? 'primary.main' : 'text.primary',
+              },
+              userSelect: 'none',
+            }}
+          >
+            <Box sx={{ display: 'flex', flexShrink: 0, opacity: isActive ? 1 : 0.7 }}>
+              {tab.icon}
+            </Box>
+            <Typography
+              variant="body2"
+              fontWeight={isActive ? 700 : 600}
+              sx={{ lineHeight: 1 }}
+            >
+              {tab.label}
+            </Typography>
+          </Box>
+        );
+      })}
     </Box>
   );
 }

@@ -47,6 +47,14 @@ export function useDeleteShow() {
   });
 }
 
+export function useSeason(id: string | undefined) {
+  return useQuery<Season, Error>({
+    queryKey: ['season', id],
+    queryFn: () => client.get(API.SEASON(id as string)).then((r) => r.data.data),
+    enabled: !!id,
+  });
+}
+
 export function useShowSeasons(showId: string | undefined) {
   return useQuery<Season[], Error>({
     queryKey: ['show-seasons', showId],

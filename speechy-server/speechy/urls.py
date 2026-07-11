@@ -10,4 +10,5 @@ urlpatterns = [
     path('api/', include('apps.episodes.urls')),
     path('api/', include('apps.knowledge.urls')),
     path('api/', include('apps.processing.urls')),
+    path('api/', include('apps.chat.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

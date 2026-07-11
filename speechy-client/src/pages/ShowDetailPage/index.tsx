@@ -5,7 +5,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableRow,
   CircularProgress, Chip, IconButton, Stack, Collapse,
 } from '@mui/material';
-import { Plus, ArrowLeft, ArrowRight, Table as TableIcon, Gear, Upload, CaretDown, CaretRight } from '@phosphor-icons/react';
+import { Plus, ArrowLeft, ArrowRight, Table as TableIcon, ChatCircleText, Upload, CaretDown, CaretRight } from '@phosphor-icons/react';
 import PageLayout from '../../templates/PageLayout';
 import AppButton from '../../atoms/AppButton';
 import AppModal from '../../atoms/AppModal';
@@ -91,11 +91,11 @@ function SeasonSection({ season, showId }: SeasonSectionProps): JSX.Element {
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
           <Button
             size="small"
-            startIcon={<Gear size={14} />}
+            startIcon={<ChatCircleText size={14} />}
             onClick={() => navigate(buildRoute.season(season.id))}
             sx={{ color: 'text.secondary', fontSize: '0.75rem' }}
           >
-            Season Questions
+            Chat & Settings
           </Button>
           <Button
             size="small"

@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'apps.episodes',
     'apps.knowledge',
     'apps.processing',
+    'apps.chat',
 ]
 
 MIDDLEWARE = [

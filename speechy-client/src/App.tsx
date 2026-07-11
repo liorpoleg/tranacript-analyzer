@@ -7,7 +7,10 @@ import DashboardPage from './pages/DashboardPage';
 import ShowsPage from './pages/ShowsPage';
 import ShowDetailPage from './pages/ShowDetailPage';
 import ShowCreatePage from './pages/ShowCreatePage';
-import SeasonDetailPage from './pages/SeasonDetailPage';
+import SeasonPage from './pages/SeasonPage';
+import SeasonSettingsTab from './pages/SeasonPage/SettingsTab';
+import SeasonJobsTab from './pages/SeasonPage/JobsTab';
+import SeasonChatTab from './pages/SeasonPage/ChatTab';
 import EpisodePage from './pages/EpisodePage';
 import SummaryTablePage from './pages/SummaryTablePage';
 import JobDetailPage from './pages/JobDetailPage';
@@ -46,7 +49,11 @@ export default function App(): JSX.Element {
                 <Route path={ROUTES.SHOW_NEW} element={<ShowCreatePage />} />
                 <Route path={ROUTES.SHOW_DETAIL} element={<ShowDetailPage />} />
                 <Route path={ROUTES.SHOW_SUMMARY_TABLE} element={<SummaryTablePage />} />
-                <Route path={ROUTES.SEASON_DETAIL} element={<SeasonDetailPage />} />
+                <Route path={ROUTES.SEASON_DETAIL} element={<SeasonPage />}>
+                  <Route index element={<SeasonSettingsTab />} />
+                  <Route path="jobs" element={<SeasonJobsTab />} />
+                  <Route path="chat" element={<SeasonChatTab />} />
+                </Route>
                 <Route path={ROUTES.EPISODE_DETAIL} element={<EpisodePage />} />
                 <Route path={ROUTES.JOB_DETAIL} element={<JobDetailPage />} />
                 <Route path={ROUTES.USERS} element={<UsersPage />} />

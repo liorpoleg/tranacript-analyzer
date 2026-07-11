@@ -18,16 +18,11 @@ class LLMClient:
         if api_key:
             self._session.headers['Authorization'] = f'Bearer {api_key}'
 
-    def complete(self, prompt: str) -> str:
+    def _post(self, messages: list[dict], temperature: float = 0.3) -> str:
         if not self.endpoint:
             raise LLMError('LLM_ENDPOINT is not configured.')
-        payload = {
-            'model': self.model,
-            'messages': [{'role': 'user', 'content': prompt}],
-            'temperature': 0.3,
-        }
+        payload = {'model': self.model, 'messages': messages, 'temperature': temperature}
         try:
-            print(f"DEBUG: Sending request to exact URL: '{self.endpoint}'")
             response = self._session.post(self.endpoint, json=payload, timeout=self.timeout)
             response.raise_for_status()
         except requests.RequestException as e:
@@ -36,3 +31,11 @@ class LLMClient:
             return response.json()['choices'][0]['message']['content']
         except (KeyError, IndexError) as e:
             raise LLMError(f'Unexpected LLM response shape: {e}') from e
+
+    def complete(self, prompt: str) -> str:
+        return self._post([{'role': 'user', 'content': prompt}])
+
+    def chat(self, system_prompt: str, messages: list[dict]) -> str:
+        """Multi-turn chat. messages is a list of {role, content} dicts."""
+        all_messages = [{'role': 'system', 'content': system_prompt}] + messages
+        return self._post(all_messages, temperature=0.7)

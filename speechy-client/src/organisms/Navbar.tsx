@@ -1,7 +1,7 @@
-import { AppBar, Toolbar, Box, Typography, Button, Avatar, Menu, MenuItem, Divider } from '@mui/material';
+import { AppBar, Toolbar, Box, Typography, Avatar, Menu, MenuItem, Divider, IconButton } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MonitorPlay, SquaresFour, SignOut, User } from '@phosphor-icons/react';
+import { SquaresFour, BookOpen, SignOut, Key, CaretDown } from '@phosphor-icons/react';
 import { useAuth } from '../hooks/useAuth';
 import { useLogout } from '../api/auth';
 import { ROUTES } from '../constants/routes';
@@ -14,37 +14,14 @@ interface NavLink {
 }
 
 const NAV_LINKS: NavLink[] = [
-  { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: <SquaresFour size={17} /> },
-  { label: 'Shows', path: ROUTES.SHOWS, icon: <MonitorPlay size={17} /> },
+  { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: <SquaresFour size={16} weight="fill" /> },
+  { label: 'Shows', path: ROUTES.SHOWS, icon: <BookOpen size={16} weight="fill" /> },
 ];
 
-function SpeechyLogo(): JSX.Element {
-  return (<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="400" cy="320" r="280" fill="#A1E8E3"/>
-  <circle cx="400" cy="320" r="260" fill="#7EDCD4"/>
+const AVATAR_COLORS = ['#2196f3', '#0288d1', '#0277bd', '#01579b', '#006db3', '#4fc3f7'];
 
-  <path d="M180 280 Q120 220 150 160 Q200 140 260 180 Q280 240 220 300 Q180 340 150 400 Q120 440 170 480 Q220 490 280 440" fill="#00B8E0" stroke="#FFFFFF" strokeWidth="18" strokeLinejoin="round"/>
-
-  <path d="M310 250 Q310 380 310 480 L310 500 Q310 520 330 520 Q350 520 350 500 L350 300 Q350 260 340 255" fill="#00B8E0" stroke="#FFFFFF" strokeWidth="18" strokeLinejoin="round"/>
-
-  <path d="M380 320 Q410 280 460 280 Q490 280 500 320 Q500 350 470 370 Q410 380 390 355" fill="#00B8E0" stroke="#FFFFFF" strokeWidth="18" strokeLinejoin="round"/>
-
-  <path d="M530 320 Q560 280 610 280 Q640 280 650 320 Q650 350 620 370 Q560 380 540 355" fill="#00B8E0" stroke="#FFFFFF" strokeWidth="18" strokeLinejoin="round"/>
-
-  <path d="M680 310 Q710 280 760 295 Q780 320 760 360 Q720 385 680 355" fill="#00B8E0" stroke="#FFFFFF" strokeWidth="18" strokeLinejoin="round"/>
-
-  <path d="M310 250 L310 480" fill="none" stroke="#00B8E0" strokeWidth="25" strokeLinecap="round"/>
-  <path d="M310 300 Q340 260 380 300" fill="none" stroke="#00B8E0" strokeWidth="18" strokeLinejoin="round"/>
-
-  <path d="M760 300 Q780 340 760 400 Q740 460 710 480" fill="none" stroke="#00B8E0" strokeWidth="18" strokeLinejoin="round"/>
-
-  <path d="M240 180 Q255 140 275 155" fill="none" stroke="#00B8E0" strokeWidth="12" strokeLinecap="round"/>
-  <path d="M240 180 Q255 120 280 130" fill="none" stroke="#00B8E0" strokeWidth="12" strokeLinecap="round"/>
-  <path d="M240 180 Q255 100 285 105" fill="none" stroke="#00B8E0" strokeWidth="12" strokeLinecap="round"/>
-
-  <text x="195" y="385" fontFamily="sans-serif" fontSize="195" fontWeight="bold" fill="none" stroke="#FFFFFF" strokeWidth="22" paintOrder="stroke" letterSpacing="-8">Speechy</text>
-  <text x="195" y="385" fontFamily="sans-serif" fontSize="195" fontWeight="bold" fill="#00B8E0" letterSpacing="-8">Speechy</text>
-</svg>);
+function getAvatarColor(name = ''): string {
+  return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
 }
 
 export default function Navbar(): JSX.Element {
@@ -55,61 +32,121 @@ export default function Navbar(): JSX.Element {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
 
   const initials = user?.username?.slice(0, 2).toUpperCase() ?? '??';
+  const avatarColor = getAvatarColor(user?.username);
 
   return (
-    <AppBar position="sticky" color="inherit" elevation={0} sx={{ borderBottom: '1px solid', borderColor: 'divider', zIndex: 50 }}>
-      <Toolbar sx={{ gap: 2.5, height: 66 }}>
-        <Box onClick={() => navigate(ROUTES.DASHBOARD)} sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }}>
-          {/* <SpeechyLogo/> */}
-          <Box component="img" src={logo} alt="Speechy" sx={{ height: 48, width: 'auto', objectFit: 'contain' }} />
+    <AppBar
+      position="sticky"
+      color="inherit"
+      elevation={0}
+      sx={{ borderBottom: '1px solid', borderColor: 'divider', zIndex: 50, bgcolor: 'background.paper' }}
+    >
+      <Toolbar sx={{ gap: 1, height: 60, minHeight: '60px !important', px: { xs: 2, md: 4 } }}>
+        <Box
+          onClick={() => navigate(ROUTES.DASHBOARD)}
+          sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer', mr: 2, flexShrink: 0 }}
+        >
+          <Box component="img" src={logo} alt="Speechy" sx={{ height: 36, width: 'auto', objectFit: 'contain' }} />
         </Box>
 
-
-
-        <Box sx={{ display: 'flex', gap: 0.5, ml: 1 }}>
-          {NAV_LINKS.map((link) => (
-            <Button
-              key={link.path}
-              startIcon={link.icon}
-              onClick={() => navigate(link.path)}
-              sx={{
-                color: location.pathname.startsWith(link.path) ? 'primary.main' : 'text.secondary',
-                bgcolor: location.pathname.startsWith(link.path) ? 'primary.50' : 'transparent',
-                fontWeight: 600,
-                borderRadius: 2,
-              }}
-            >
-              {link.label}
-            </Button>
-          ))}
+        <Box sx={{ display: 'flex', gap: 0.5, height: '100%', alignItems: 'stretch' }}>
+          {NAV_LINKS.map((link) => {
+            const active = location.pathname.startsWith(link.path);
+            return (
+              <Box
+                key={link.path}
+                onClick={() => navigate(link.path)}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  px: 1.5,
+                  cursor: 'pointer',
+                  position: 'relative',
+                  color: active ? 'primary.main' : 'text.secondary',
+                  fontWeight: active ? 700 : 600,
+                  fontSize: '0.875rem',
+                  fontFamily: 'inherit',
+                  borderBottom: '2px solid',
+                  borderColor: active ? 'primary.main' : 'transparent',
+                  transition: 'color 0.15s, border-color 0.15s',
+                  '&:hover': { color: 'text.primary' },
+                  userSelect: 'none',
+                }}
+              >
+                <Box sx={{ display: 'flex', color: active ? 'primary.main' : 'text.disabled' }}>
+                  {link.icon}
+                </Box>
+                {link.label}
+              </Box>
+            );
+          })}
         </Box>
 
-        <Box sx={{ ml: 'auto' }} />
+        <Box sx={{ flex: 1 }} />
 
         <Box
           onClick={(e: React.MouseEvent<HTMLDivElement>) => setAnchor(e.currentTarget)}
           sx={{
-            display: 'flex', alignItems: 'center', gap: 1.25, px: 1.5, py: 0.75,
-            borderRadius: 3, border: '1px solid', borderColor: 'divider',
-            cursor: 'pointer', '&:hover': { bgcolor: 'background.default' },
+            display: 'flex', alignItems: 'center', gap: 1, px: 1.25, py: 0.75,
+            borderRadius: 99, cursor: 'pointer',
+            '&:hover': { bgcolor: '#F1F5F9' },
+            transition: 'background 0.15s',
           }}
         >
-          <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.8rem', fontWeight: 700, borderRadius: 2 }}>
+          <Avatar
+            sx={{
+              width: 32, height: 32,
+              bgcolor: avatarColor,
+              fontSize: '0.75rem',
+              fontWeight: 800,
+              fontFamily: 'inherit',
+            }}
+          >
             {initials}
           </Avatar>
-          <Box sx={{ lineHeight: 1.15 }}>
-            <Typography variant="body2" fontWeight={700}>{user?.username}</Typography>
-            <Typography variant="caption" color="text.secondary" textTransform="capitalize">{user?.role}</Typography>
+          <Box sx={{ lineHeight: 1.2, display: { xs: 'none', sm: 'block' } }}>
+            <Typography variant="body2" fontWeight={700} lineHeight={1.2}>{user?.username}</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize', lineHeight: 1 }}>
+              {user?.role}
+            </Typography>
           </Box>
+          <CaretDown size={14} style={{ color: '#94A3B8' }} />
         </Box>
 
-        <Menu open={Boolean(anchor)} anchorEl={anchor} onClose={() => setAnchor(null)}>
-          <MenuItem onClick={() => { setAnchor(null); navigate('/api-keys'); }}>
-            <User size={16} style={{ marginRight: 8 }} /> API Keys
+        <Menu
+          open={Boolean(anchor)}
+          anchorEl={anchor}
+          onClose={() => setAnchor(null)}
+          PaperProps={{
+            elevation: 0,
+            sx: {
+              border: '1px solid', borderColor: 'divider',
+              borderRadius: 3,
+              minWidth: 180,
+              mt: 0.5,
+              boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
+            },
+          }}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          <Box sx={{ px: 2, py: 1.5 }}>
+            <Typography variant="body2" fontWeight={700}>{user?.username}</Typography>
+            <Typography variant="caption" color="text.secondary">{user?.email}</Typography>
+          </Box>
+          <Divider />
+          <MenuItem onClick={() => { setAnchor(null); navigate('/api-keys'); }} sx={{ gap: 1.25, py: 1.25 }}>
+            <Key size={15} style={{ color: '#64748B' }} />
+            <Typography variant="body2" fontWeight={600}>API Keys</Typography>
           </MenuItem>
           <Divider />
-          <MenuItem onClick={() => logout.mutate()} sx={{ color: 'error.main' }}>
-            <SignOut size={16} style={{ marginRight: 8 }} /> Logout
+          <MenuItem
+            onClick={() => logout.mutate()}
+            sx={{ gap: 1.25, py: 1.25, color: 'error.main', '&:hover': { bgcolor: '#FEF2F2' } }}
+          >
+            <SignOut size={15} />
+            <Typography variant="body2" fontWeight={600} color="error.main">Sign out</Typography>
           </MenuItem>
         </Menu>
       </Toolbar>
