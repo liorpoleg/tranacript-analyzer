@@ -9,6 +9,10 @@ import { GlobalStyles as MuiGlobalStyles } from '@mui/material';
 const styles = {
   '@font-face': [],
   '*': { boxSizing: 'border-box' },
+  // Reserve the scrollbar's width permanently so content that grows past the
+  // viewport height (e.g. expanding a table row) doesn't shift the whole
+  // page horizontally when the scrollbar appears.
+  html: { overflowY: 'scroll' },
   '::-webkit-scrollbar': { width: 8, height: 8 },
   '::-webkit-scrollbar-thumb': {
     background: 'rgba(130,130,140,0.32)',

@@ -3,12 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Card, CardContent, Typography, Button, Divider,
   Table, TableBody, TableCell, TableHead, TableRow,
-  CircularProgress, Chip, IconButton, Stack, Collapse,
+  CircularProgress, Stack, Collapse,
 } from '@mui/material';
-import { Plus, ArrowLeft, ArrowRight, Table as TableIcon, ChatCircleText, Upload, CaretDown, CaretRight } from '@phosphor-icons/react';
+import { Plus, ArrowLeft, Table as TableIcon, ChatCircleText, Upload, CaretDown, CaretRight } from '@phosphor-icons/react';
 import PageLayout from '../../templates/PageLayout';
 import AppButton from '../../atoms/AppButton';
 import AppModal from '../../atoms/AppModal';
+import ExpandableEpisodeRow from '../../organisms/ExpandableEpisodeRow';
 import { useShow, useShowSeasons, useCreateSeason } from '../../api/shows';
 import { useSeasonEpisodes, useCreateEpisode, useSeasonUpload } from '../../api/episodes';
 import { useShowQuestions } from '../../api/questions';
@@ -16,7 +17,6 @@ import { useShowKnowledge } from '../../api/knowledge';
 import { useToast } from '../../contexts/ToastContext';
 import { buildRoute, ROUTES } from '../../constants/routes';
 import { usePageTitle } from '../../hooks/usePageTitle';
-import { formatDate } from '../../utils/formatDate';
 import QuestionsPanel from '../../organisms/QuestionsPanel';
 import KnowledgePanel from '../../organisms/KnowledgePanel';
 import TwoColumnLayout from '../../templates/TwoColumnLayout';
@@ -115,35 +115,31 @@ function SeasonSection({ season, showId }: SeasonSectionProps): JSX.Element {
 
       <Collapse in={!collapsed}>
       <Card sx={{ mb: 3, overflow: 'hidden' }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Ep #</TableCell>
-              <TableCell>Title</TableCell>
-              <TableCell>Air Date</TableCell>
-              <TableCell>Has Translation</TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {isLoading ? (
-              <TableRow><TableCell colSpan={5} align="center"><CircularProgress size={20} /></TableCell></TableRow>
-            ) : episodes.length === 0 ? (
-              <TableRow><TableCell colSpan={5} align="center"><Typography variant="body2" color="text.secondary" py={2}>No episodes yet.</Typography></TableCell></TableRow>
-            ) : episodes.map((ep: Episode) => (
-              <TableRow key={ep.id} hover sx={{ cursor: 'pointer' }} onClick={() => navigate(buildRoute.episode(ep.id))}>
-                <TableCell sx={{ fontFamily: 'monospace', color: 'text.secondary', fontWeight: 700 }}>{ep.episode_number}</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>{ep.title}</TableCell>
-                <TableCell>{formatDate(ep.air_date)}</TableCell>
-                <TableCell>
-                  {ep.has_translation_en && <Chip label="EN" size="small" color="primary" sx={{ mr: 0.5 }} />}
-                  {ep.has_translation_he && <Chip label="HE" size="small" color="secondary" />}
-                </TableCell>
-                <TableCell><ArrowRight size={14} /></TableCell>
+        <Box sx={{ overflowX: 'auto' }}>
+          <Table size="small" sx={{ tableLayout: 'fixed' }}>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ width: 90 }}>Ep #</TableCell>
+                <TableCell sx={{ width: 90 }}>Title</TableCell>
+                <TableCell sx={{ width: 130 }}>Air Date</TableCell>
+                <TableCell sx={{ width: 220 }}>Characters</TableCell>
+                <TableCell sx={{ width: 130 }}>Translations</TableCell>
+                <TableCell sx={{ width: 110 }}>Summary</TableCell>
+                <TableCell sx={{ width: 48 }} />
+                <TableCell sx={{ width: 48 }} />
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {isLoading ? (
+                <TableRow><TableCell colSpan={8} align="center"><CircularProgress size={20} /></TableCell></TableRow>
+              ) : episodes.length === 0 ? (
+                <TableRow><TableCell colSpan={8} align="center"><Typography variant="body2" color="text.secondary" py={2}>No episodes yet.</Typography></TableCell></TableRow>
+              ) : episodes.map((ep: Episode) => (
+                <ExpandableEpisodeRow key={ep.id} episode={ep} onOpen={() => navigate(buildRoute.episode(ep.id))} />
+              ))}
+            </TableBody>
+          </Table>
+        </Box>
       </Card>
       </Collapse>
 
