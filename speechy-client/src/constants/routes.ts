@@ -1,6 +1,8 @@
 export const ROUTES = {
   LOGIN: '/login',
   SIGNUP: '/signup',
+  UNAUTHORIZED: '/unauthorized',
+  SSO_CALLBACK: '/sso/callback',
   DASHBOARD: '/dashboard',
   SHOWS: '/shows',
   SHOW_NEW: '/shows/new',

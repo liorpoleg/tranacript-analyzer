@@ -1,49 +1,31 @@
-from django.conf import settings
-from django.utils import timezone
+from datetime import timedelta
+
+from django.conf import settings as django_settings
+from django.shortcuts import redirect
+from django.views import View
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.exceptions import TokenError
 
 from .models import Organization, User, APIKey, UserSession, AuditLog
 from .serializers import (
     OrganizationSerializer, UserSerializer, UserCreateSerializer,
     APIKeySerializer, APIKeyCreateSerializer, UserSessionSerializer,
     AuditLogSerializer, LoginSerializer, RegisterSerializer,
+    SpeechyTokenObtainPairSerializer,
 )
 from .services import login_user, register_user, create_session, revoke_session, create_api_key, revoke_api_key
 
 
-def _set_auth_cookies(response, refresh):
-    access_cookie = getattr(settings, 'JWT_COOKIE_NAME', 'speechy_access')
-    refresh_cookie = getattr(settings, 'JWT_REFRESH_COOKIE_NAME', 'speechy_refresh')
-    httponly = getattr(settings, 'JWT_COOKIE_HTTPONLY', True)
-    samesite = getattr(settings, 'JWT_COOKIE_SAMESITE', 'Lax')
-    secure = getattr(settings, 'JWT_COOKIE_SECURE', False)
-    access_lifetime = settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME']
-    refresh_lifetime = settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME']
-
-    response.set_cookie(
-        access_cookie, str(refresh.access_token),
-        max_age=int(access_lifetime.total_seconds()),
-        httponly=httponly, samesite=samesite, secure=secure,
-    )
-    response.set_cookie(
-        refresh_cookie, str(refresh),
-        max_age=int(refresh_lifetime.total_seconds()),
-        httponly=httponly, samesite=samesite, secure=secure,
-    )
-
-
 class LoginView(APIView):
+    authentication_classes = []
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user, refresh = login_user(
+        user, _ = login_user(
             serializer.validated_data['username'],
             serializer.validated_data['password'],
         )
@@ -52,59 +34,78 @@ class LoginView(APIView):
                 {'data': None, 'error': {'code': 401, 'message': 'Invalid credentials.'}},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
+        refresh = SpeechyTokenObtainPairSerializer.get_token(user)
         ip = request.META.get('REMOTE_ADDR')
         ua = request.META.get('HTTP_USER_AGENT', '')
         create_session(user, refresh, ip, ua)
-        response = Response({'data': UserSerializer(user).data, 'error': None})
-        _set_auth_cookies(response, refresh)
-        return response
+        return Response({'data': {'token': str(refresh.access_token), 'user': UserSerializer(user).data}, 'error': None})
 
 
 class RegisterView(APIView):
+    authentication_classes = []
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         d = serializer.validated_data
-        user, refresh = register_user(
+        user, _ = register_user(
             username=d['username'],
             email=d['email'],
             password=d['password'],
             organization_name=d['organization_name'],
         )
+        refresh = SpeechyTokenObtainPairSerializer.get_token(user)
         ip = request.META.get('REMOTE_ADDR')
         ua = request.META.get('HTTP_USER_AGENT', '')
         create_session(user, refresh, ip, ua)
-        response = Response(
-            {'data': UserSerializer(user).data, 'error': None},
+        return Response(
+            {'data': {'token': str(refresh.access_token), 'user': UserSerializer(user).data}, 'error': None},
             status=status.HTTP_201_CREATED,
         )
-        _set_auth_cookies(response, refresh)
-        return response
 
 
 class LogoutView(APIView):
     def post(self, request):
-        refresh_cookie = getattr(settings, 'JWT_REFRESH_COOKIE_NAME', 'speechy_refresh')
-        raw_refresh = request.COOKIES.get(refresh_cookie)
-        if raw_refresh:
-            try:
-                token = RefreshToken(raw_refresh)
-                jti = str(token['jti'])
-                UserSession.objects.filter(refresh_token_jti=jti).update(is_active=False)
-                token.blacklist()
-            except TokenError:
-                pass
-        response = Response({'data': None, 'error': None})
-        response.delete_cookie(getattr(settings, 'JWT_COOKIE_NAME', 'speechy_access'))
-        response.delete_cookie(refresh_cookie)
-        return response
+        return Response({'data': None, 'error': None})
 
 
 class MeView(APIView):
     def get(self, request):
         return Response({'data': UserSerializer(request.user).data, 'error': None})
+
+
+class MockSSOView(View):
+    def get(self, request):
+        org, _ = Organization.objects.get_or_create(
+            slug='sso-org',
+            defaults={'name': 'SSO Organization', 'max_episodes': 1000, 'max_users': 100, 'max_storage_mb': 10000},
+        )
+        user, created = User.objects.get_or_create(
+            username='liorpo',
+            defaults={
+                'email': 'liorpo@sso.local',
+                'role': 'admin',
+                'organization': org,
+                'is_active': True,
+            },
+        )
+        if created:
+            user.set_unusable_password()
+            user.save()
+        refresh = SpeechyTokenObtainPairSerializer.get_token(user)
+        access_token = refresh.access_token
+        # SSO sessions are long-lived, unlike the 8h lifetime for password logins.
+        access_token.set_exp(lifetime=timedelta(days=30))
+        access = str(access_token)
+        origins = getattr(django_settings, 'CORS_ALLOWED_ORIGINS', ['http://localhost:3000'])
+        client_origin = origins[0] if origins else 'http://localhost:3000'
+        response = redirect(f'{client_origin}/sso/callback?token={access}')
+        # The popup is cross-origin to the client until this redirect lands, so
+        # SecurityMiddleware's default same-origin COOP would sever window.opener
+        # before the callback page can postMessage back to it.
+        response['Cross-Origin-Opener-Policy'] = 'unsafe-none'
+        return response
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
@@ -183,7 +184,7 @@ class APIKeyViewSet(viewsets.GenericViewSet):
         s.is_valid(raise_exception=True)
         api_key, raw = create_api_key(request.user, s.validated_data['name'])
         data = APIKeySerializer(api_key).data
-        data['key'] = raw  # shown once
+        data['key'] = raw
         return Response({'data': data, 'error': None}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])

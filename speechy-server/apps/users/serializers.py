@@ -1,5 +1,19 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import Organization, User, APIKey, UserSession, AuditLog
+
+
+class SpeechyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """Extends the default pair serializer with permission_groups and username claims."""
+
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['username'] = user.username
+        token['permission_groups'] = (
+            ['speechy_admins', 'speechy_viewers'] if user.role == 'admin' else ['speechy_viewers']
+        )
+        return token
 
 
 class OrganizationSerializer(serializers.ModelSerializer):

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Box, Card, CardContent, TextField, Typography, Alert } from '@mui/material';
+import { Box, Card, CardContent, Divider, TextField, Typography, Alert } from '@mui/material';
 import AppButton from '../../atoms/AppButton';
-import { useLogin } from '../../api/auth';
+import { useLogin, loginWithSSO } from '../../api/auth';
 import { ROUTES } from '../../constants/routes';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -29,6 +29,8 @@ export default function LoginPage(): JSX.Element {
   const login = useLogin();
   const [form, setForm] = useState<LoginForm>({ username: '', password: '' });
   const [error, setError] = useState<string>('');
+  const [ssoLoading, setSsoLoading] = useState(false);
+  const cancelSsoRef = useRef<(() => void) | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -39,6 +41,23 @@ export default function LoginPage(): JSX.Element {
     } catch {
       setError('Invalid username or password.');
     }
+  };
+
+  const handleSSOLogin = (): void => {
+    setError('');
+    setSsoLoading(true);
+    const cancel = loginWithSSO(navigate, (msg) => {
+      setSsoLoading(false);
+      cancelSsoRef.current = null;
+      setError(msg);
+    });
+    cancelSsoRef.current = cancel;
+  };
+
+  const handleCancelSSO = (): void => {
+    cancelSsoRef.current?.();
+    cancelSsoRef.current = null;
+    setSsoLoading(false);
   };
 
   return (
@@ -74,6 +93,25 @@ export default function LoginPage(): JSX.Element {
               Sign In
             </AppButton>
           </Box>
+
+          <Divider sx={{ my: 2.5 }}>
+            <Typography variant="caption" color="text.disabled">or</Typography>
+          </Divider>
+
+          {ssoLoading ? (
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <AppButton variant="outlined" fullWidth loading>
+                Waiting for SSO…
+              </AppButton>
+              <AppButton variant="text" color="inherit" onClick={handleCancelSSO} sx={{ flexShrink: 0 }}>
+                Cancel
+              </AppButton>
+            </Box>
+          ) : (
+            <AppButton variant="outlined" fullWidth onClick={handleSSOLogin}>
+              Login with SSO
+            </AppButton>
+          )}
 
           <Typography variant="body2" color="text.secondary" textAlign="center" mt={2.5}>
             Don't have an account?{' '}

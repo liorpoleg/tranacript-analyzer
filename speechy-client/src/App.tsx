@@ -1,8 +1,11 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
+import { getToken } from './utils/tokenStorage';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
+import UnauthorizedPage from './pages/UnauthorizedPage';
+import SsoCallbackPage from './pages/SsoCallbackPage';
 import DashboardPage from './pages/DashboardPage';
 import ShowsPage from './pages/ShowsPage';
 import ShowDetailPage from './pages/ShowDetailPage';
@@ -27,6 +30,7 @@ interface ProtectedRouteProps {
 }
 
 function ProtectedRoute({ children }: ProtectedRouteProps): JSX.Element {
+  if (!getToken()) return <Navigate to={ROUTES.LOGIN} replace />;
   const { user, isLoading } = useAuth();
   if (isLoading) return <></>;
   if (!user) return <Navigate to={ROUTES.LOGIN} replace />;
@@ -39,6 +43,8 @@ export default function App(): JSX.Element {
       <Routes>
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={ROUTES.SIGNUP} element={<SignUpPage />} />
+        <Route path={ROUTES.UNAUTHORIZED} element={<UnauthorizedPage />} />
+        <Route path={ROUTES.SSO_CALLBACK} element={<SsoCallbackPage />} />
         <Route
           path="/*"
           element={

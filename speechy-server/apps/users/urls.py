@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    LoginView, LogoutView, MeView, RegisterView,
+    LoginView, LogoutView, MeView, RegisterView, MockSSOView,
     OrganizationViewSet, UserViewSet,
     APIKeyViewSet, UserSessionViewSet, AuditLogViewSet,
 )
@@ -18,5 +18,6 @@ urlpatterns = [
     path('auth/logout/', LogoutView.as_view(), name='auth-logout'),
     path('auth/me/', MeView.as_view(), name='auth-me'),
     path('auth/register/', RegisterView.as_view(), name='auth-register'),
+    path('auth/sso/mock/', MockSSOView.as_view(), name='sso-mock'),
     path('', include(router.urls)),
 ]
