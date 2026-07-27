@@ -1,0 +1,13 @@
+# First-time bootstrap only — `oc apply -k openshift/` after namespace.yaml
+# and both secret.yaml files (see server/secret.example.yaml) already exist.
+# Day-to-day, speechy-server and speechy-client each redeploy independently
+# via their own `oc apply -k openshift/<project>` (see the .gitlab-ci.yml
+# in each), which is why this aggregator intentionally does NOT include
+# namespace.yaml or the secrets — see OPENSHIFT.md for the exact order.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - postgres
+  - redis
+  - server
+  - client

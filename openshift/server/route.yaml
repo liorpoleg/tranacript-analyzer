@@ -1,0 +1,19 @@
+# Edit `host` to your real hostname before applying, and make sure it
+# matches ALLOWED_HOSTS in configmap.yaml.
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: speechy-server
+  labels:
+    app: speechy
+    component: server-web
+spec:
+  host: speechy-api.apps.CHANGEME.example.com
+  to:
+    kind: Service
+    name: speechy-server
+  port:
+    targetPort: 8000
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

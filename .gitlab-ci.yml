@@ -1,0 +1,14 @@
+# Speechy — speechy-server and speechy-client are independently deployed
+# (CLAUDE.md §2), so each keeps its own pipeline definition. GitLab only
+# reads a single top-level .gitlab-ci.yml per project, so this root file
+# just wires the two together via `include:local` — each job still only
+# runs when its own project's files change (see the `rules: changes:` in
+# each included file).
+stages:
+  - test
+  - build
+  - deploy
+
+include:
+  - local: 'speechy-server/.gitlab-ci.yml'
+  - local: 'speechy-client/.gitlab-ci.yml'

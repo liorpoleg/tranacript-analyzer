@@ -1,0 +1,20 @@
+# Edit `host` to your real hostname before applying, and make sure it
+# matches CLIENT_ORIGIN in ../server/configmap.yaml and that the client
+# image was built with a matching VITE_API_URL build arg.
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: speechy-client
+  labels:
+    app: speechy
+    component: client
+spec:
+  host: speechy.apps.CHANGEME.example.com
+  to:
+    kind: Service
+    name: speechy-client
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

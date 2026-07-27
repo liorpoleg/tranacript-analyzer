@@ -1,0 +1,21 @@
+# RWX because both server-web replicas and server-worker read/write the
+# same uploaded Excel files and generated media — needs a storage class
+# that supports ReadWriteMany (NFS, Ceph/ODF, etc). If your cluster only
+# has RWO storage classes available, drop server-web to replicas: 1 in
+# deployment-web.yaml and keep server-worker's replica pinned to the same
+# node via nodeAffinity, or move media to an S3-compatible object store
+# instead (see CLAUDE.md §14 — storage backend is explicitly an open
+# question to confirm with the user).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: speechy-server-media
+  labels:
+    app: speechy
+    component: server
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi

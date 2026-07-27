@@ -1,0 +1,12 @@
+# Apply this first and on its own: `oc apply -f openshift/namespace.yaml`.
+# On real OpenShift, `oc new-project speechy` is the more idiomatic way to
+# create this (it also sets requester/display-name annotations) — this
+# plain Namespace object is here so the whole stack can also be applied
+# with kubectl on vanilla Kubernetes, and for GitOps tooling that expects
+# every object to be declared as a file.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: speechy
+  labels:
+    app: speechy

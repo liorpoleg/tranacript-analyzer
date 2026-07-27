@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: speechy-server-web
+  labels:
+    app: speechy
+    component: server-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: speechy
+      component: server-web
+  template:
+    metadata:
+      labels:
+        app: speechy
+        component: server-web
+    spec:
+      imagePullSecrets:
+        - name: gitlab-registry
+      containers:
+        - name: server
+          # Replace with your real GitLab Container Registry path — CI
+          # pushes here (see speechy-server/.gitlab-ci.yml). Pinned to
+          # :latest with Always so `oc rollout restart` (CI's deploy step)
+          # actually re-pulls the image server:build just pushed.
+          image: registry.gitlab.example.com/speechy/speechy-server:latest
+          imagePullPolicy: Always
+          args: ["web"]
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: speechy-server-config
+            - secretRef:
+                name: speechy-server-secret
+          volumeMounts:
+            - name: media
+              mountPath: /app/media
+            - name: prompts
+              mountPath: /prompts
+              readOnly: true
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: media
+          persistentVolumeClaim:
+            claimName: speechy-server-media
+        - name: prompts
+          configMap:
+            name: speechy-prompts

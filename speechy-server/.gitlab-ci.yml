@@ -1,0 +1,91 @@
+# speechy-server pipeline — independently built, tested, and deployed from
+# speechy-client (CLAUDE.md §2: the two projects communicate only over HTTP
+# and must never be imported into one another, including at CI/CD level).
+#
+# Included by the repo-root .gitlab-ci.yml. Every job below is scoped with
+# `rules: changes:` so this pipeline only runs when something it actually
+# depends on changes — its own tree or the shared prompts/ directory.
+#
+# Required CI/CD variables (Settings → CI/CD → Variables):
+#   OC_SERVER   OpenShift API URL, e.g. https://api.cluster.example.com:6443
+#   OC_TOKEN    token for a ServiceAccount with `edit` on the `speechy` project
+# CI_REGISTRY / CI_REGISTRY_USER / CI_REGISTRY_PASSWORD / CI_REGISTRY_IMAGE
+# are predefined by GitLab once the project's Container Registry is enabled.
+
+.server-changes: &server-changes
+  changes:
+    - speechy-server/**/*
+    - prompts/**/*
+    - speechy-server/.gitlab-ci.yml
+
+server:test:
+  stage: test
+  image: python:3.11-slim
+  rules:
+    - <<: *server-changes
+  services:
+    - name: postgres:16-alpine
+      alias: postgres
+  variables:
+    POSTGRES_DB: speechy_test
+    POSTGRES_USER: speechy
+    POSTGRES_PASSWORD: speechy
+    DB_NAME: speechy_test
+    DB_USER: speechy
+    DB_PASSWORD: speechy
+    DB_HOST: postgres
+    DB_PORT: "5432"
+    SECRET_KEY: ci-test-secret-key
+    ALLOWED_HOSTS: localhost
+    CLIENT_ORIGIN: http://localhost:3000
+  before_script:
+    - cd speechy-server
+    - pip install --no-cache-dir -r requirements.txt
+  script:
+    - python manage.py test --settings=speechy.settings.test
+
+server:build:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  rules:
+    - <<: *server-changes
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    # Built from the repo root (not speechy-server/) so the shared prompts/
+    # directory baked into the image is in the build context — see the
+    # Dockerfile's own header comment.
+    - >
+      docker build
+      -f speechy-server/.docker/Dockerfile
+      -t "$CI_REGISTRY_IMAGE/speechy-server:$CI_COMMIT_SHORT_SHA"
+      -t "$CI_REGISTRY_IMAGE/speechy-server:latest"
+      .
+    - docker push "$CI_REGISTRY_IMAGE/speechy-server:$CI_COMMIT_SHORT_SHA"
+    - docker push "$CI_REGISTRY_IMAGE/speechy-server:latest"
+
+server:deploy:
+  stage: deploy
+  image: quay.io/openshift/origin-cli:4.15
+  rules:
+    - <<: *server-changes
+      if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: manual
+  environment:
+    name: production
+  script:
+    - oc login "$OC_SERVER" --token="$OC_TOKEN"
+    # Manifests are pinned to the ":latest" tag with imagePullPolicy: Always
+    # (see openshift/server/*-deployment.yaml) — re-applying them is a no-op
+    # on spec, so the rollout restart below is what actually forces a fresh
+    # pull of the image server:build just pushed. The unique $CI_COMMIT_SHORT_SHA
+    # tag stays in the registry purely for manual rollback via `oc set image`.
+    - oc apply -k openshift/server -n speechy
+    - oc rollout restart deployment/speechy-server-web -n speechy
+    - oc rollout restart deployment/speechy-server-worker -n speechy
+    - oc rollout status deployment/speechy-server-web -n speechy --timeout=180s
+    - oc rollout status deployment/speechy-server-worker -n speechy --timeout=180s

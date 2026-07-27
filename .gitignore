@@ -9,6 +9,7 @@ Thumbs.db
 .env
 *.local
 credentials.json
+openshift/**/secret.yaml
 
 # Log files and databases
 *.log

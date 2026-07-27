@@ -8,7 +8,7 @@ with a real ADFS integration.
 
 ```
                       ┌────────────────────┐
-   browser  ───────▶  │ client (nginx)     │  static SPA, port 3000→80
+   browser  ───────▶  │ client (nginx)     │  static SPA, port 3000→8080
                       └─────────┬──────────┘
                                 │ REST (JSON), Bearer JWT
                                 ▼

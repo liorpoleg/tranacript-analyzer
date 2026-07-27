@@ -1,0 +1,73 @@
+# speechy-client pipeline — independently built, tested, and deployed from
+# speechy-server (CLAUDE.md §2: the two projects communicate only over HTTP
+# and must never be imported into one another, including at CI/CD level).
+#
+# Included by the repo-root .gitlab-ci.yml. Every job below is scoped with
+# `rules: changes:` so this pipeline only runs when speechy-client/ changes.
+#
+# Required CI/CD variables (Settings → CI/CD → Variables):
+#   VITE_API_URL   real internal API origin — baked into the JS bundle at
+#                  *build* time, cannot be changed on the running container
+#   VITE_SSO_URL   optional — see DEPLOYMENT.md §5
+#   OC_SERVER      OpenShift API URL
+#   OC_TOKEN       token for a ServiceAccount with `edit` on the `speechy` project
+# CI_REGISTRY / CI_REGISTRY_USER / CI_REGISTRY_PASSWORD / CI_REGISTRY_IMAGE
+# are predefined by GitLab once the project's Container Registry is enabled.
+
+.client-changes: &client-changes
+  changes:
+    - speechy-client/**/*
+    - speechy-client/.gitlab-ci.yml
+
+client:test:
+  stage: test
+  image: node:20-alpine
+  rules:
+    - <<: *client-changes
+  before_script:
+    - cd speechy-client
+    - npm ci --prefer-offline
+  script:
+    - npx tsc --noEmit
+    - npm test
+
+client:build:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  rules:
+    - <<: *client-changes
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    - >
+      docker build
+      -f speechy-client/.docker/Dockerfile
+      --build-arg VITE_API_URL="$VITE_API_URL"
+      --build-arg VITE_SSO_URL="$VITE_SSO_URL"
+      -t "$CI_REGISTRY_IMAGE/speechy-client:$CI_COMMIT_SHORT_SHA"
+      -t "$CI_REGISTRY_IMAGE/speechy-client:latest"
+      speechy-client
+    - docker push "$CI_REGISTRY_IMAGE/speechy-client:$CI_COMMIT_SHORT_SHA"
+    - docker push "$CI_REGISTRY_IMAGE/speechy-client:latest"
+
+client:deploy:
+  stage: deploy
+  image: quay.io/openshift/origin-cli:4.15
+  rules:
+    - <<: *client-changes
+      if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: manual
+  environment:
+    name: production
+  script:
+    - oc login "$OC_SERVER" --token="$OC_TOKEN"
+    # Same "apply + rollout restart" pattern as speechy-server — see that
+    # project's .gitlab-ci.yml for why. The image is pinned to ":latest"
+    # with imagePullPolicy: Always in openshift/client/deployment.yaml.
+    - oc apply -k openshift/client -n speechy
+    - oc rollout restart deployment/speechy-client -n speechy
+    - oc rollout status deployment/speechy-client -n speechy --timeout=180s

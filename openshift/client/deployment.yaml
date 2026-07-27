@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: speechy-client
+  labels:
+    app: speechy
+    component: client
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: speechy
+      component: client
+  template:
+    metadata:
+      labels:
+        app: speechy
+        component: client
+    spec:
+      imagePullSecrets:
+        - name: gitlab-registry
+      containers:
+        - name: client
+          # Replace with your real GitLab Container Registry path — CI
+          # pushes here (see speechy-client/.gitlab-ci.yml). VITE_API_URL
+          # is baked into this image at *build* time; changing it means
+          # rebuilding, not editing this Deployment.
+          image: registry.gitlab.example.com/speechy/speechy-client:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi

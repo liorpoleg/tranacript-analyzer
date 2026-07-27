@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: speechy-server
+  labels:
+    app: speechy
+    component: server-web
+spec:
+  selector:
+    app: speechy
+    component: server-web
+  ports:
+    - port: 8000
+      targetPort: 8000

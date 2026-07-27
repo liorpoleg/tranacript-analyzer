@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: speechy-client
+  labels:
+    app: speechy
+    component: client
+spec:
+  selector:
+    app: speechy
+    component: client
+  ports:
+    - port: 8080
+      targetPort: 8080

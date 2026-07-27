@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: speechy-server-worker
+  labels:
+    app: speechy
+    component: server-worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: speechy
+      component: server-worker
+  template:
+    metadata:
+      labels:
+        app: speechy
+        component: server-worker
+    spec:
+      imagePullSecrets:
+        - name: gitlab-registry
+      containers:
+        - name: worker
+          # Same image as server-web — .docker/entrypoint.sh picks web vs
+          # worker off the container command, there's no separate build.
+          image: registry.gitlab.example.com/speechy/speechy-server:latest
+          imagePullPolicy: Always
+          args: ["worker"]
+          envFrom:
+            - configMapRef:
+                name: speechy-server-config
+            - secretRef:
+                name: speechy-server-secret
+          volumeMounts:
+            - name: media
+              mountPath: /app/media
+            - name: prompts
+              mountPath: /prompts
+              readOnly: true
+          livenessProbe:
+            exec:
+              command:
+                - celery
+                - -A
+                - speechy
+                - inspect
+                - ping
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: media
+          persistentVolumeClaim:
+            claimName: speechy-server-media
+        - name: prompts
+          configMap:
+            name: speechy-prompts

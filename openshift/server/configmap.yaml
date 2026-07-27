@@ -1,0 +1,24 @@
+# Non-secret env for speechy-server (web + worker). Edit ALLOWED_HOSTS and
+# CLIENT_ORIGIN to match your real Route hostnames before applying — see
+# OPENSHIFT.md. Secrets (SECRET_KEY, DB_PASSWORD, LLM_ENDPOINT, LLM_API_KEY)
+# live in secret.yaml (copy secret.example.yaml, fill it in — never commit
+# the real one, same convention as .env / .env.example).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: speechy-server-config
+  labels:
+    app: speechy
+    component: server
+data:
+  DEBUG: "False"
+  ALLOWED_HOSTS: "speechy-server,speechy-server.speechy.svc.cluster.local,speechy-api.apps.CHANGEME.example.com"
+  CLIENT_ORIGIN: "https://speechy.apps.CHANGEME.example.com"
+  DB_NAME: speechy
+  DB_USER: speechy
+  DB_HOST: speechy-postgres
+  DB_PORT: "5432"
+  REDIS_URL: "redis://speechy-redis:6379/0"
+  LLM_MODEL: gpt-4
+  PROMPTS_DIR: /prompts
+  MEDIA_ROOT: /app/media

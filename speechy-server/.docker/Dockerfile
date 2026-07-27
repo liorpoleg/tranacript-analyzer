@@ -31,6 +31,15 @@ RUN python manage.py collectstatic --noinput
 COPY speechy-server/.docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# OpenShift's restricted SCC runs the container as an arbitrary, non-root
+# UID that always belongs to group 0 — group-own everything under /app (and
+# /prompts, which the local bind mount/ConfigMap volume will remount over
+# anyway) so that arbitrary UID can still read/write it. HOME must point
+# somewhere writable since UID 1001 has no passwd entry on the host.
+RUN chgrp -R 0 /app /prompts && chmod -R g=u /app /prompts
+ENV HOME=/app
+USER 1001
+
 EXPOSE 8000
 
 ENTRYPOINT ["/entrypoint.sh"]

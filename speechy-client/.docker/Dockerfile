@@ -28,5 +28,15 @@ FROM nginx:1.25-alpine
 COPY .docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-EXPOSE 80
+# OpenShift's restricted SCC runs the container as an arbitrary, non-root
+# UID belonging to group 0 — nginx normally needs root to write its pid file
+# and runtime cache/log dirs, so re-point those at group-writable locations
+# and drop privileges. Still works unmodified under plain Docker/Compose.
+RUN touch /var/run/nginx.pid && \
+    chgrp -R 0 /var/cache/nginx /var/run/nginx.pid /var/log/nginx /usr/share/nginx/html && \
+    chmod -R g=u /var/cache/nginx /var/run/nginx.pid /var/log/nginx /usr/share/nginx/html
+
+USER 1001
+
+EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
