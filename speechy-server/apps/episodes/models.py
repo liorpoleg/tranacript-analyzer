@@ -81,6 +81,7 @@ class EpisodeSummary(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     episode = models.OneToOneField(Episode, on_delete=models.CASCADE, related_name='summary')
     summary_text = models.TextField()
+    brief_summary = models.TextField(blank=True)
     key_topics = ArrayField(models.CharField(max_length=300), default=list)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

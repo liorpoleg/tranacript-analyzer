@@ -2,14 +2,13 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Card, CardContent, Typography, Button, Divider,
-  Table, TableBody, TableCell, TableHead, TableRow,
-  CircularProgress, Stack, Collapse,
+  Stack, Collapse, CircularProgress,
 } from '@mui/material';
 import { Plus, ArrowLeft, Table as TableIcon, ChatCircleText, Upload, CaretDown, CaretRight } from '@phosphor-icons/react';
 import PageLayout from '../../templates/PageLayout';
 import AppButton from '../../atoms/AppButton';
 import AppModal from '../../atoms/AppModal';
-import ExpandableEpisodeRow from '../../organisms/ExpandableEpisodeRow';
+import EpisodeTable from '../../organisms/EpisodeTable';
 import { useShow, useShowSeasons, useCreateSeason } from '../../api/shows';
 import { useSeasonEpisodes, useCreateEpisode, useSeasonUpload } from '../../api/episodes';
 import { useShowQuestions } from '../../api/questions';
@@ -20,7 +19,7 @@ import { usePageTitle } from '../../hooks/usePageTitle';
 import QuestionsPanel from '../../organisms/QuestionsPanel';
 import KnowledgePanel from '../../organisms/KnowledgePanel';
 import TwoColumnLayout from '../../templates/TwoColumnLayout';
-import type { Season, Episode } from '../../types';
+import type { Season } from '../../types';
 
 interface EpisodeFormState {
   episode_number: string;
@@ -114,33 +113,13 @@ function SeasonSection({ season, showId }: SeasonSectionProps): JSX.Element {
       </Box>
 
       <Collapse in={!collapsed}>
-      <Card sx={{ mb: 3, overflow: 'hidden' }}>
-        <Box sx={{ overflowX: 'auto' }}>
-          <Table size="small" sx={{ tableLayout: 'fixed' }}>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ width: 90 }}>Ep #</TableCell>
-                <TableCell sx={{ width: 90 }}>Title</TableCell>
-                <TableCell sx={{ width: 130 }}>Air Date</TableCell>
-                <TableCell sx={{ width: 220 }}>Characters</TableCell>
-                <TableCell sx={{ width: 130 }}>Translations</TableCell>
-                <TableCell sx={{ width: 110 }}>Summary</TableCell>
-                <TableCell sx={{ width: 48 }} />
-                <TableCell sx={{ width: 48 }} />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {isLoading ? (
-                <TableRow><TableCell colSpan={8} align="center"><CircularProgress size={20} /></TableCell></TableRow>
-              ) : episodes.length === 0 ? (
-                <TableRow><TableCell colSpan={8} align="center"><Typography variant="body2" color="text.secondary" py={2}>No episodes yet.</Typography></TableCell></TableRow>
-              ) : episodes.map((ep: Episode) => (
-                <ExpandableEpisodeRow key={ep.id} episode={ep} onOpen={() => navigate(buildRoute.episode(ep.id))} />
-              ))}
-            </TableBody>
-          </Table>
+        <Box sx={{ mb: 3 }}>
+          <EpisodeTable
+            episodes={episodes}
+            isLoading={isLoading}
+            onOpen={(ep) => navigate(buildRoute.episode(ep.id))}
+          />
         </Box>
-      </Card>
       </Collapse>
 
       <AppModal open={open} onClose={() => setOpen(false)} title="Add Episode" onConfirm={handleCreate} confirmLabel="Create" loading={createEpisode.isLoading}>

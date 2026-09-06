@@ -204,26 +204,32 @@ class ParseTranslatedResponseTest(TestCase):
 class ParseSummaryResponseTest(TestCase):
     def test_extracts_key_topics_after_key_topics_header(self):
         response = 'This is the summary.\n\nKey Topics:\n- Drama\n- Romance\n'
-        summary, topics = _parse_summary_response(response)
+        summary, brief, topics = _parse_summary_response(response)
         self.assertIn('Drama', topics)
         self.assertIn('Romance', topics)
 
     def test_summary_text_excludes_topics_block(self):
         response = 'Great episode.\n\nKey Topics:\n- Action\n'
-        summary, topics = _parse_summary_response(response)
+        summary, brief, topics = _parse_summary_response(response)
         self.assertIn('Great episode', summary)
         self.assertNotIn('Action', summary)
 
     def test_no_topics_section_returns_empty_list(self):
         response = 'Simple summary with no topics.'
-        summary, topics = _parse_summary_response(response)
+        summary, brief, topics = _parse_summary_response(response)
         self.assertEqual(topics, [])
         self.assertEqual(summary, 'Simple summary with no topics.')
 
     def test_topics_header_case_insensitive(self):
         response = 'topics:\n- X\n'
-        _, topics = _parse_summary_response(response)
+        _, _, topics = _parse_summary_response(response)
         self.assertIn('X', topics)
+
+    def test_extracts_brief_summary(self):
+        response = 'Key Topics:\n- X\n\nBrief Summary:\nA short recap.\n\nFull paragraph here.'
+        summary, brief, topics = _parse_summary_response(response)
+        self.assertEqual(brief, 'A short recap.')
+        self.assertIn('Full paragraph here', summary)
 
 
 # ---------------------------------------------------------------------------

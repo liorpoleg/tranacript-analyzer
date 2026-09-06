@@ -9,7 +9,7 @@ from .models import Episode, EpisodeSeason, Transcript, Character, TranscriptLan
 def get_episodes_for_user(user):
     return Episode.objects.filter(
         primary_show__organization=user.organization
-    ).select_related('primary_show').prefetch_related(
+    ).select_related('primary_show', 'summary').prefetch_related(
         'transcripts', 'characters', 'episodeseason_set__season'
     )
 

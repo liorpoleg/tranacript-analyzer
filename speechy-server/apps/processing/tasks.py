@@ -145,12 +145,16 @@ def summarize_task(self, job_id: str):
         prompt = inject_context(prompt_template, TRANSCRIPT=transcript_text)
         client = LLMClient()
         response = client.complete(prompt)
-        summary_text, key_topics = _parse_summary_response(response)
+        summary_text, brief_summary, key_topics = _parse_summary_response(response)
 
         from apps.episodes.models import EpisodeSummary
         EpisodeSummary.objects.update_or_create(
             episode=episode,
-            defaults={'summary_text': summary_text, 'key_topics': key_topics},
+            defaults={
+                'summary_text': summary_text,
+                'brief_summary': brief_summary,
+                'key_topics': key_topics,
+            },
         )
 
         mark_completed(job)
@@ -161,24 +165,34 @@ def summarize_task(self, job_id: str):
         mark_failed(job, str(exc))
 
 
-def _parse_summary_response(response: str) -> tuple[str, list[str]]:
+def _parse_summary_response(response: str) -> tuple[str, str, list[str]]:
     lines = response.strip().split('\n')
     key_topics: list[str] = []
+    brief_lines: list[str] = []
     summary_lines: list[str] = []
     in_topics = False
+    in_brief = False
     for line in lines:
         stripped = line.strip()
         if stripped.lower().startswith('key topics:') or stripped.lower().startswith('topics:'):
-            in_topics = True
+            in_topics, in_brief = True, False
+            continue
+        if stripped.lower().startswith('brief summary:'):
+            in_topics, in_brief = False, True
             continue
         if in_topics and stripped.startswith('-'):
             key_topics.append(stripped.lstrip('- ').strip())
         elif in_topics and stripped == '':
             in_topics = False
+        elif in_brief and stripped:
+            brief_lines.append(stripped)
+        elif in_brief and stripped == '':
+            in_brief = False
         else:
             summary_lines.append(line)
     summary_text = '\n'.join(summary_lines).strip()
-    return summary_text or response.strip(), key_topics
+    brief_summary = ' '.join(brief_lines).strip()
+    return summary_text or response.strip(), brief_summary, key_topics
 
 
 @shared_task(bind=True, max_retries=0)
