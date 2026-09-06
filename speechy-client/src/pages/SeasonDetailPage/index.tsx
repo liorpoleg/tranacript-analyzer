@@ -68,7 +68,7 @@ export default function SeasonDetailPage(): JSX.Element {
         }
         right={
           <Card>
-            <CardContent sx={{ p: 3, height: 560, display: 'flex', flexDirection: 'column' }}>
+            <CardContent sx={{ p: 3, height: { xs: 420, md: 560 }, display: 'flex', flexDirection: 'column' }}>
               <ChatPanel
                 episodeIds={selectedEpisodeIds}
                 contextLabel={

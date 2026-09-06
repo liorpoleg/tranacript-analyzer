@@ -18,18 +18,18 @@ export default function EpisodeTable({ episodes, isLoading = false, onOpen, empt
   return (
     <Card sx={{ overflow: 'hidden' }}>
       <Box sx={{ overflowX: 'auto' }}>
-        <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
+        <Table sx={{ tableLayout: 'fixed', width: '100%', minWidth: '45rem' }}>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ width: 70 }}>Ep #</TableCell>
-              <TableCell sx={{ width: 160 }}>Title</TableCell>
-              <TableCell sx={{ width: 110 }}>Air Date</TableCell>
-              <TableCell sx={{ width: 260 }}>Characters</TableCell>
-              <TableCell sx={{ width: 110 }}>Translations</TableCell>
-              <TableCell sx={{ width: 100 }}>Summary</TableCell>
+              <TableCell sx={{ width: '7%' }}>Ep #</TableCell>
+              <TableCell sx={{ width: '15%' }}>Title</TableCell>
+              <TableCell sx={{ width: '9%' }}>Air Date</TableCell>
+              <TableCell sx={{ width: '20%' }}>Characters</TableCell>
+              <TableCell sx={{ width: '9%' }}>Translations</TableCell>
+              <TableCell sx={{ width: '8%' }}>Summary</TableCell>
               <TableCell>Brief Summary</TableCell>
-              <TableCell sx={{ width: 48 }} />
-              {onOpen && <TableCell sx={{ width: 48 }} />}
+              <TableCell sx={{ width: '3rem' }} />
+              {onOpen && <TableCell sx={{ width: '3rem' }} />}
             </TableRow>
           </TableHead>
           <TableBody>

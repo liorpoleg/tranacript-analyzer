@@ -105,9 +105,10 @@ export default function TranslateTab({ episode }: TranslateTabProps): JSX.Elemen
                 <Box
                   key={i}
                   sx={{
-                    px: 3, py: 1.25,
+                    px: { xs: 2, md: 3 }, py: 1.25,
                     display: 'flex',
-                    gap: 2,
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    gap: { xs: 0.5, sm: 2 },
                     borderBottom: '1px solid',
                     borderColor: 'divider',
                     '&:last-child': { borderBottom: 'none' },
@@ -118,7 +119,7 @@ export default function TranslateTab({ episode }: TranslateTabProps): JSX.Elemen
                   <Typography
                     variant="body2"
                     fontWeight={700}
-                    sx={{ minWidth: 130, color: 'primary.main', flexShrink: 0 }}
+                    sx={{ width: { xs: '100%', sm: 130 }, flexShrink: 0, color: 'primary.main' }}
                   >
                     {row.character_name}
                   </Typography>

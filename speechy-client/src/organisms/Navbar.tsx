@@ -5,7 +5,7 @@ import {
 import type { SelectChangeEvent } from '@mui/material/Select';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { SquaresFour, BookOpen, SignOut, Key, CaretDown, MagnifyingGlass } from '@phosphor-icons/react';
+import { SquaresFour, BookOpen, SignOut, Key, CaretDown, MagnifyingGlass, List as ListIcon } from '@phosphor-icons/react';
 import { useAuth } from '../hooks/useAuth';
 import { useLogout } from '../api/auth';
 import { useShows, useShowSearch } from '../api/shows';
@@ -37,6 +37,7 @@ export default function Navbar(): JSX.Element {
   const { user } = useAuth();
   const logout = useLogout();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const [navAnchor, setNavAnchor] = useState<HTMLElement | null>(null);
 
   const { data: shows } = useShows();
   const [selectedShowId, setSelectedShowId] = useState('');
@@ -103,7 +104,28 @@ export default function Navbar(): JSX.Element {
           <Box component="img" src={logo} alt="Speechy" sx={{ height: 36, width: 'auto', objectFit: 'contain' }} />
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 0.5, height: '100%', alignItems: 'stretch' }}>
+        <IconButton
+          onClick={(e: React.MouseEvent<HTMLElement>) => setNavAnchor(e.currentTarget)}
+          sx={{ display: { xs: 'flex', sm: 'none' }, mr: 0.5 }}
+          aria-label="Open navigation menu"
+        >
+          <ListIcon size={20} />
+        </IconButton>
+        <Menu open={Boolean(navAnchor)} anchorEl={navAnchor} onClose={() => setNavAnchor(null)}>
+          {NAV_LINKS.map((link) => (
+            <MenuItem
+              key={link.path}
+              selected={location.pathname.startsWith(link.path)}
+              onClick={() => { navigate(link.path); setNavAnchor(null); }}
+              sx={{ gap: 1.25, py: 1.25 }}
+            >
+              {link.icon}
+              <Typography variant="body2" fontWeight={600}>{link.label}</Typography>
+            </MenuItem>
+          ))}
+        </Menu>
+
+        <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 0.5, height: '100%', alignItems: 'stretch' }}>
           {NAV_LINKS.map((link) => {
             const active = location.pathname.startsWith(link.path);
             return (
@@ -167,7 +189,7 @@ export default function Navbar(): JSX.Element {
                   },
                 }}
               >
-                <MagnifyingGlass size={16} style={{ flexShrink: 0, color: '#94A3B8' }} />
+                <MagnifyingGlass size={16} color="#94A3B8" style={{ flexShrink: 0 }} />
                 <InputBase
                   fullWidth
                   size="small"
@@ -287,7 +309,7 @@ export default function Navbar(): JSX.Element {
               {user?.role}
             </Typography>
           </Box>
-          <CaretDown size={14} style={{ color: '#94A3B8' }} />
+          <CaretDown size={14} color="#94A3B8" />
         </Box>
 
         <Menu

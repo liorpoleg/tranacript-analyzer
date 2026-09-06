@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Card, CardContent, Typography, Button, Divider,
-  Stack, Collapse, CircularProgress,
+  Stack, Collapse, CircularProgress, TextField,
 } from '@mui/material';
 import { Plus, ArrowLeft, Table as TableIcon, ChatCircleText, Upload, CaretDown, CaretRight } from '@phosphor-icons/react';
 import PageLayout from '../../templates/PageLayout';
@@ -70,13 +70,13 @@ function SeasonSection({ season, showId }: SeasonSectionProps): JSX.Element {
       <Box
         onClick={() => setCollapsed((c) => !c)}
         sx={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          mb: collapsed ? 2 : 1, px: 1.5, py: 1.25, borderRadius: 2,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap',
+          mb: collapsed ? 2 : 1, px: 1.5, py: 1.25, borderRadius: 2, gap: 1,
           cursor: 'pointer', userSelect: 'none',
           '&:hover': { bgcolor: 'background.default' },
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
           {collapsed ? <CaretRight size={15} weight="bold" /> : <CaretDown size={15} weight="bold" />}
           <Typography fontWeight={700}>
             Season {season.number}{season.title ? ` — ${season.title}` : ''}
@@ -87,7 +87,7 @@ function SeasonSection({ season, showId }: SeasonSectionProps): JSX.Element {
             </Typography>
           )}
         </Box>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }} onClick={(e) => e.stopPropagation()}>
           <Button
             size="small"
             startIcon={<ChatCircleText size={14} />}
@@ -133,9 +133,10 @@ function SeasonSection({ season, showId }: SeasonSectionProps): JSX.Element {
             return (
               <Box key={field}>
                 <Typography variant="body2" fontWeight={700} mb={0.75}>{labelMap[field]}</Typography>
-                <input
+                <TextField
+                  fullWidth
+                  size="small"
                   type={field === 'air_date' ? 'date' : 'text'}
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #e3e6ec', borderRadius: 10, fontSize: 14 }}
                   value={form[field]}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm((p) => ({ ...p, [field]: e.target.value }))}
                 />
@@ -229,9 +230,11 @@ export default function ShowDetailPage(): JSX.Element {
       <AppModal open={seasonModal} onClose={() => setSeasonModal(false)} title="Add Season" onConfirm={handleCreateSeason} confirmLabel="Add" loading={createSeason.isLoading}>
         <Box>
           <Typography variant="body2" fontWeight={700} mb={0.75}>Season Number</Typography>
-          <input
-            type="number" min="1"
-            style={{ width: '100%', padding: '8px 12px', border: '1px solid #e3e6ec', borderRadius: 10, fontSize: 14 }}
+          <TextField
+            fullWidth
+            size="small"
+            type="number"
+            inputProps={{ min: 1 }}
             value={seasonNumber}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSeasonNumber(e.target.value)}
           />

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Box, Card, CardContent, Typography, CircularProgress, Breadcrumbs } from '@mui/material';
+import { Box, Card, CardContent, Typography, CircularProgress, Breadcrumbs, Link as MuiLink } from '@mui/material';
 import PageLayout from '../../templates/PageLayout';
 import Navbar from '../../organisms/Navbar';
 import SidebarNav from '../../organisms/SidebarNav';
@@ -56,10 +56,10 @@ export default function EpisodePage(): JSX.Element {
       <Box sx={{ position: 'sticky', top: 60, zIndex: 40, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ maxWidth: 1320, mx: 'auto', px: { xs: 2, md: 5 }, py: 1.5 }}>
           <Breadcrumbs>
-            <Link to="/dashboard" style={{ color: '#9aa1ae', textDecoration: 'none', fontWeight: 600, fontSize: 13 }}>Dashboard</Link>
-            <Link to={buildRoute.show(ep?.primary_show ?? '')} style={{ color: '#5f6675', textDecoration: 'none', fontWeight: 600, fontSize: 13 }}>
+            <MuiLink component={Link} to="/dashboard" underline="none" sx={{ color: 'text.disabled', fontWeight: 600, fontSize: 13 }}>Dashboard</MuiLink>
+            <MuiLink component={Link} to={buildRoute.show(ep?.primary_show ?? '')} underline="none" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: 13 }}>
               {ep?.primary_show_name}
-            </Link>
+            </MuiLink>
             <Typography fontSize={13} fontWeight={700} color="text.primary">
               {ep?.episode_number} · {ep?.title}
             </Typography>
@@ -68,8 +68,14 @@ export default function EpisodePage(): JSX.Element {
       </Box>
 
       <Box sx={{ maxWidth: 1320, mx: 'auto', px: { xs: 2, md: 5 }, py: 3, pb: 8 }}>
-        <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
-          <Box sx={{ width: 236, flexShrink: 0, position: 'sticky', top: 116 }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, alignItems: 'flex-start' }}>
+          <Box sx={{
+            width: { xs: '100%', md: 236 },
+            flexShrink: 0,
+            position: { xs: 'static', md: 'sticky' },
+            top: 116,
+          }}
+          >
             <Card sx={{ mb: 1.5 }}>
               <CardContent sx={{ p: 2 }}>
                 <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.secondary', fontWeight: 700 }}>

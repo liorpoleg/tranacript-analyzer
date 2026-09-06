@@ -24,7 +24,13 @@ interface SidebarNavProps {
 
 export default function SidebarNav({ active, onChange }: SidebarNavProps): JSX.Element {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+    <Box sx={{
+      display: 'flex',
+      flexDirection: { xs: 'row', md: 'column' },
+      gap: 0.25,
+      overflowX: { xs: 'auto', md: 'visible' },
+    }}
+    >
       {TABS.map((tab) => {
         const isActive = active === tab.key;
         return (
@@ -37,6 +43,8 @@ export default function SidebarNav({ active, onChange }: SidebarNavProps): JSX.E
               gap: 1.25,
               px: 1.5,
               py: 1.1,
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
               borderRadius: 2.5,
               cursor: 'pointer',
               bgcolor: isActive ? '#e3f2fd' : 'transparent',

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Table, TableHead, TableBody, TableRow, TableCell, CircularProgress, Box, Typography, Alert, Stack, TextField } from '@mui/material';
+import { Card, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, CircularProgress, Box, Typography, Alert, Stack, TextField } from '@mui/material';
 import { Plus, Key } from '@phosphor-icons/react';
 import PageLayout from '../../templates/PageLayout';
 import SectionHeader from '../../atoms/SectionHeader';
@@ -53,21 +53,23 @@ export default function ApiKeysPage(): JSX.Element {
       )}
 
       <Card sx={{ overflow: 'hidden' }}>
-        <Table>
-          <TableHead><TableRow><TableCell>Name</TableCell><TableCell>Prefix</TableCell><TableCell>Status</TableCell><TableCell>Created</TableCell><TableCell /></TableRow></TableHead>
-          <TableBody>
-            {isLoading ? <TableRow><TableCell colSpan={5} align="center"><CircularProgress size={24} sx={{ my: 2 }} /></TableCell></TableRow>
-              : keys.map((k: APIKey) => (
-                <TableRow key={k.id} hover>
-                  <TableCell sx={{ fontWeight: 600 }}>{k.name}</TableCell>
-                  <TableCell sx={{ fontFamily: 'monospace' }}>{k.key_prefix}…</TableCell>
-                  <TableCell>{k.is_active ? <Typography color="success.main" fontWeight={700} variant="body2">Active</Typography> : <Typography color="text.disabled" variant="body2">Revoked</Typography>}</TableCell>
-                  <TableCell>{formatDate(k.created_at)}</TableCell>
-                  <TableCell>{k.is_active && <AppButton size="small" color="error" variant="outlined" onClick={() => handleRevoke(k.id)}>Revoke</AppButton>}</TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
+        <TableContainer sx={{ overflowX: 'auto' }}>
+          <Table>
+            <TableHead><TableRow><TableCell>Name</TableCell><TableCell>Prefix</TableCell><TableCell>Status</TableCell><TableCell>Created</TableCell><TableCell /></TableRow></TableHead>
+            <TableBody>
+              {isLoading ? <TableRow><TableCell colSpan={5} align="center"><CircularProgress size={24} sx={{ my: 2 }} /></TableCell></TableRow>
+                : keys.map((k: APIKey) => (
+                  <TableRow key={k.id} hover>
+                    <TableCell sx={{ fontWeight: 600 }}>{k.name}</TableCell>
+                    <TableCell sx={{ fontFamily: 'monospace' }}>{k.key_prefix}…</TableCell>
+                    <TableCell>{k.is_active ? <Typography color="success.main" fontWeight={700} variant="body2">Active</Typography> : <Typography color="text.disabled" variant="body2">Revoked</Typography>}</TableCell>
+                    <TableCell>{formatDate(k.created_at)}</TableCell>
+                    <TableCell>{k.is_active && <AppButton size="small" color="error" variant="outlined" onClick={() => handleRevoke(k.id)}>Revoke</AppButton>}</TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Card>
 
       <AppModal open={modal} onClose={() => setModal(false)} title="Create API Key" onConfirm={handleCreate} confirmLabel="Create" loading={create.isLoading}>

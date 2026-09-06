@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Box, Card, CardContent, TextField, Typography, Alert } from '@mui/material';
+import { Box, Card, CardContent, TextField, Typography, Alert, Link as MuiLink } from '@mui/material';
 import AppButton from '../../atoms/AppButton';
 import { useRegister } from '../../api/auth';
 import { ROUTES } from '../../constants/routes';
@@ -111,9 +111,9 @@ export default function SignUpPage(): JSX.Element {
 
           <Typography variant="body2" color="text.secondary" textAlign="center" mt={2.5}>
             Already have an account?{' '}
-            <Link to={ROUTES.LOGIN} style={{ color: '#2196f3', fontWeight: 600, textDecoration: 'none' }}>
+            <MuiLink component={Link} to={ROUTES.LOGIN} underline="none" sx={{ color: 'primary.main', fontWeight: 600 }}>
               Sign in
-            </Link>
+            </MuiLink>
           </Typography>
         </CardContent>
       </Card>

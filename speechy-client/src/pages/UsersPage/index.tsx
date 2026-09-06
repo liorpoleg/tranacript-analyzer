@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { Card, Table, TableHead, TableBody, TableRow, TableCell, Chip, CircularProgress, Box, Typography, Stack } from '@mui/material';
+import {
+  Card, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Chip, CircularProgress,
+  Box, Typography, Stack, TextField, MenuItem,
+} from '@mui/material';
 import { Plus } from '@phosphor-icons/react';
 import PageLayout from '../../templates/PageLayout';
 import SectionHeader from '../../atoms/SectionHeader';
@@ -45,21 +48,23 @@ export default function UsersPage(): JSX.Element {
     <PageLayout>
       <SectionHeader title="Users" action={<AppButton variant="contained" startIcon={<Plus size={16} />} onClick={() => setModal(true)}>Add User</AppButton>} />
       <Card sx={{ overflow: 'hidden' }}>
-        <Table>
-          <TableHead><TableRow><TableCell>Username</TableCell><TableCell>Email</TableCell><TableCell>Role</TableCell><TableCell>Organization</TableCell><TableCell>Last Login</TableCell></TableRow></TableHead>
-          <TableBody>
-            {isLoading ? <TableRow><TableCell colSpan={5} align="center"><CircularProgress size={24} sx={{ my: 2 }} /></TableCell></TableRow>
-              : users.map((u: User) => (
-                <TableRow key={u.id} hover>
-                  <TableCell sx={{ fontWeight: 600 }}>{u.username}</TableCell>
-                  <TableCell>{u.email}</TableCell>
-                  <TableCell><Chip label={u.role} size="small" color={ROLE_COLORS[u.role] ?? 'default'} /></TableCell>
-                  <TableCell>{u.organization_name}</TableCell>
-                  <TableCell>{formatDate(u.last_login)}</TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
+        <TableContainer sx={{ overflowX: 'auto' }}>
+          <Table>
+            <TableHead><TableRow><TableCell>Username</TableCell><TableCell>Email</TableCell><TableCell>Role</TableCell><TableCell>Organization</TableCell><TableCell>Last Login</TableCell></TableRow></TableHead>
+            <TableBody>
+              {isLoading ? <TableRow><TableCell colSpan={5} align="center"><CircularProgress size={24} sx={{ my: 2 }} /></TableCell></TableRow>
+                : users.map((u: User) => (
+                  <TableRow key={u.id} hover>
+                    <TableCell sx={{ fontWeight: 600 }}>{u.username}</TableCell>
+                    <TableCell>{u.email}</TableCell>
+                    <TableCell><Chip label={u.role} size="small" color={ROLE_COLORS[u.role] ?? 'default'} /></TableCell>
+                    <TableCell>{u.organization_name}</TableCell>
+                    <TableCell>{formatDate(u.last_login)}</TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Card>
 
       <AppModal open={modal} onClose={() => setModal(false)} title="Add User" onConfirm={handleCreate} confirmLabel="Create" loading={create.isLoading}>
@@ -67,14 +72,26 @@ export default function UsersPage(): JSX.Element {
           {([['username', 'Username'], ['email', 'Email'], ['password', 'Password']] as [string, string][]).map(([f, l]) => (
             <Box key={f}>
               <Typography variant="body2" fontWeight={700} mb={0.75}>{l}</Typography>
-              <input type={f === 'password' ? 'password' : 'text'} style={{ width: '100%', padding: '8px 12px', border: '1px solid #e3e6ec', borderRadius: 10, fontSize: 14 }} value={(form as Record<string, string>)[f]} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm((p) => ({ ...p, [f]: e.target.value }))} />
+              <TextField
+                fullWidth
+                size="small"
+                type={f === 'password' ? 'password' : 'text'}
+                value={(form as Record<string, string>)[f]}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm((p) => ({ ...p, [f]: e.target.value }))}
+              />
             </Box>
           ))}
           <Box>
             <Typography variant="body2" fontWeight={700} mb={0.75}>Role</Typography>
-            <select style={{ width: '100%', padding: '8px 12px', border: '1px solid #e3e6ec', borderRadius: 10, fontSize: 14 }} value={form.role} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm((p) => ({ ...p, role: e.target.value }))}>
-              {['admin', 'manager', 'analyst'].map((r) => <option key={r} value={r}>{r}</option>)}
-            </select>
+            <TextField
+              fullWidth
+              select
+              size="small"
+              value={form.role}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm((p) => ({ ...p, role: e.target.value }))}
+            >
+              {['admin', 'manager', 'analyst'].map((r) => <MenuItem key={r} value={r}>{r}</MenuItem>)}
+            </TextField>
           </Box>
         </Stack>
       </AppModal>
