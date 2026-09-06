@@ -1,12 +1,9 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import {
-  Box, Card, TextField, InputAdornment, MenuItem, Select, Typography,
-  Table, TableHead, TableBody, TableRow, TableCell, CircularProgress,
-} from '@mui/material';
+import { Box, TextField, InputAdornment, MenuItem, Select } from '@mui/material';
 import { MagnifyingGlass } from '@phosphor-icons/react';
 import TablePageLayout from '../../templates/TablePageLayout';
-import ExpandableEpisodeRow from '../../organisms/ExpandableEpisodeRow';
+import EpisodeTable from '../../organisms/EpisodeTable';
 import { useShow, useShowSeasons } from '../../api/shows';
 import { useEpisodes } from '../../api/episodes';
 import { usePageTitle } from '../../hooks/usePageTitle';
@@ -34,6 +31,7 @@ export default function SummaryTablePage(): JSX.Element {
     <TablePageLayout
       title={`${show?.name ?? ''} — Summary Table`}
       subtitle="Browse transcripts and summaries for all episodes."
+      maxWidth="100%"
       filterBar={
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <TextField
@@ -51,32 +49,7 @@ export default function SummaryTablePage(): JSX.Element {
         </Box>
       }
     >
-      <Card sx={{ overflow: 'hidden' }}>
-        <Box sx={{ overflowX: 'auto' }}>
-          <Table sx={{ tableLayout: 'fixed' }}>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ width: 90 }}>Ep #</TableCell>
-                <TableCell>Title</TableCell>
-                <TableCell sx={{ width: 130 }}>Air Date</TableCell>
-                <TableCell sx={{ width: 220 }}>Characters</TableCell>
-                <TableCell sx={{ width: 130 }}>Translations</TableCell>
-                <TableCell sx={{ width: 110 }}>Summary</TableCell>
-                <TableCell sx={{ width: 48 }} />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {isLoading ? (
-                <TableRow><TableCell colSpan={7} align="center"><CircularProgress size={24} sx={{ my: 3 }} /></TableCell></TableRow>
-              ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={7} align="center"><Typography color="text.secondary" py={4}>No episodes found.</Typography></TableCell></TableRow>
-              ) : filtered.map((ep: Episode) => (
-                <ExpandableEpisodeRow key={ep.id} episode={ep} />
-              ))}
-            </TableBody>
-          </Table>
-        </Box>
-      </Card>
+      <EpisodeTable episodes={filtered} isLoading={isLoading} emptyMessage="No episodes found." />
     </TablePageLayout>
   );
 }

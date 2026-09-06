@@ -69,6 +69,7 @@ export interface Episode {
   has_translation_en: boolean;
   has_translation_he: boolean;
   has_summary?: boolean;
+  brief_summary?: string;
   season_memberships: Array<{
     season: string;
     season_number: number;
@@ -107,6 +108,7 @@ export interface EpisodeSummary {
   id: string;
   episode: string;
   summary_text: string;
+  brief_summary: string;
   key_topics: string[];
   created_at: string;
   updated_at: string;

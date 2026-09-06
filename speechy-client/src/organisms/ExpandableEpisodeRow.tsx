@@ -24,7 +24,7 @@ export default function ExpandableEpisodeRow({ episode, onOpen }: ExpandableEpis
     transcripts.find((t) => t.language === 'origin');
 
   const transcriptText = transcript?.rows.map((r) => `${r.character_name}: ${r.text}`).join('\n') ?? '';
-  const columnCount = onOpen ? 8 : 7;
+  const columnCount = onOpen ? 9 : 8;
 
   return (
     <>
@@ -35,9 +35,27 @@ export default function ExpandableEpisodeRow({ episode, onOpen }: ExpandableEpis
         <TableCell sx={{ fontWeight: 600 }}>{episode.title}</TableCell>
         <TableCell>{formatDate(episode.air_date)}</TableCell>
         <TableCell>
-          {episode.characters.slice(0, 3).map((c, i) => (
-            <Chip key={i} label={c.name} size="small" sx={{ mr: 0.5, mb: 0.25 }} />
-          ))}
+          <Box
+            title={episode.characters.map((c) => c.name).join(', ')}
+            sx={{ display: 'flex', flexWrap: 'nowrap', gap: 0.5, overflow: 'hidden' }}
+          >
+            {episode.characters.slice(0, 2).map((c, i) => (
+              <Chip
+                key={i}
+                label={c.name}
+                size="small"
+                sx={{ flexShrink: 1, minWidth: 0, maxWidth: 150, '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis' } }}
+              />
+            ))}
+            {episode.characters.length > 2 && (
+              <Chip
+                label={`+${episode.characters.length - 2}`}
+                size="small"
+                variant="outlined"
+                sx={{ flexShrink: 0 }}
+              />
+            )}
+          </Box>
         </TableCell>
         <TableCell>
           {episode.has_translation_en && <Chip label="EN" size="small" color="primary" sx={{ mr: 0.5 }} />}
@@ -45,6 +63,26 @@ export default function ExpandableEpisodeRow({ episode, onOpen }: ExpandableEpis
         </TableCell>
         <TableCell>
           <StatusBadge status={episode.has_summary ? 'completed' : 'pending'} />
+        </TableCell>
+        <TableCell sx={{ whiteSpace: 'normal', verticalAlign: 'top', py: 1.5 }}>
+          {episode.brief_summary ? (
+            <Typography
+              variant="body2"
+              color="text.primary"
+              title={episode.brief_summary}
+              sx={{
+                lineHeight: 1.6,
+                display: '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              {episode.brief_summary}
+            </Typography>
+          ) : (
+            <Typography variant="body2" color="text.disabled">—</Typography>
+          )}
         </TableCell>
         <TableCell>
           <IconButton size="small">{expanded ? <CaretUp size={14} /> : <CaretDown size={14} />}</IconButton>

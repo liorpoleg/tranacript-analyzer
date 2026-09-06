@@ -14,12 +14,16 @@ Key Topics:
 - [topic 3]
 - (add more as needed, max 8)
 
+Brief Summary:
+[1-2 sentences capturing the essence of the episode, suitable for display in a table cell.]
+
 [One comprehensive paragraph summarizing the episode. Include the main events, key themes, important discussions, and any significant developments. Be informative and concise.]
 
 ## Rules
 - Base your summary ONLY on the transcript content provided.
 - Do not invent or speculate about events not in the transcript.
 - Write in a neutral, analytical tone.
+- The brief summary must be 1-2 sentences only.
 - The paragraph should be 3-6 sentences.
 
 ## Transcript

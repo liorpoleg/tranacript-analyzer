@@ -28,6 +28,7 @@ class EpisodeSerializer(serializers.ModelSerializer):
     has_translation_he = serializers.SerializerMethodField()
     has_translation_en = serializers.SerializerMethodField()
     has_summary = serializers.SerializerMethodField()
+    brief_summary = serializers.SerializerMethodField()
 
     class Meta:
         model = Episode
@@ -35,7 +36,7 @@ class EpisodeSerializer(serializers.ModelSerializer):
             'id', 'primary_show', 'primary_show_name', 'episode_number', 'title',
             'air_date', 'original_language', 'characters',
             'season_memberships', 'has_origin_transcript',
-            'has_translation_he', 'has_translation_en', 'has_summary',
+            'has_translation_he', 'has_translation_en', 'has_summary', 'brief_summary',
             'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
@@ -52,6 +53,9 @@ class EpisodeSerializer(serializers.ModelSerializer):
     def get_has_summary(self, obj):
         return hasattr(obj, 'summary')
 
+    def get_brief_summary(self, obj):
+        return obj.summary.brief_summary if hasattr(obj, 'summary') else ''
+
 
 class TranscriptSerializer(serializers.ModelSerializer):
     class Meta:
@@ -63,7 +67,7 @@ class TranscriptSerializer(serializers.ModelSerializer):
 class EpisodeSummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = EpisodeSummary
-        fields = ['id', 'episode', 'summary_text', 'key_topics', 'created_at', 'updated_at']
+        fields = ['id', 'episode', 'summary_text', 'brief_summary', 'key_topics', 'created_at', 'updated_at']
         read_only_fields = fields
 
 
