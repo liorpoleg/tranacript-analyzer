@@ -1,0 +1,12 @@
+.title {
+  margin-bottom: 12px;
+}
+
+.list {
+  margin-top: 16px;
+}
+
+.emptyMessage {
+  text-align: center;
+  padding: 16px 0;
+}

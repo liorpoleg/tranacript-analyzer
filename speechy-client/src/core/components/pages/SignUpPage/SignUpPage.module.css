@@ -1,0 +1,22 @@
+.errorAlert {
+  margin-bottom: 16px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.submitButton {
+  margin-top: 8px;
+}
+
+.signinPrompt {
+  margin-top: 20px;
+}
+
+.signinLink {
+  color: var(--color-primary);
+  font-weight: 600;
+}

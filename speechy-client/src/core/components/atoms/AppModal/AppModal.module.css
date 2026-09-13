@@ -1,0 +1,9 @@
+.title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.actions {
+  padding: 0 24px 16px;
+}

@@ -1,0 +1,45 @@
+.title {
+  font-size: 1.3rem;
+  margin-bottom: 16px;
+}
+
+.uploadCard {
+  margin-bottom: 16px;
+}
+
+.uploadCardContent {
+  padding: 24px;
+}
+
+.uploadCardTitle {
+  margin-bottom: 12px;
+}
+
+.uploadHint {
+  display: block;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+.processingCard {
+  margin-bottom: 16px;
+}
+
+.processingCardContent {
+  padding: 20px;
+}
+
+.processingTitle {
+  margin-bottom: 12px;
+}
+
+.processingRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.viewChip {
+  cursor: pointer;
+  margin-left: auto;
+}

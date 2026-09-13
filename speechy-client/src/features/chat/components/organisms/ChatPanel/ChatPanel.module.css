@@ -1,0 +1,155 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 480px;
+}
+
+.contextLabel {
+  margin-bottom: 12px;
+}
+
+.contextLabelText {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.messageList {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 4px;
+  margin-bottom: 16px;
+}
+
+.emptyState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 0;
+  color: var(--color-text-disabled);
+}
+
+.messageRow {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.messageRowUser {
+  flex-direction: row-reverse;
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  color: var(--color-text-secondary);
+}
+
+.avatarUser {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.messageBody {
+  max-width: 80%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bubble {
+  padding: 10px 14px;
+  background: #f1f5f9;
+  color: var(--color-text-primary);
+  border-radius: 4px 16px 16px 16px;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.bubbleUser {
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 16px 4px 16px 16px;
+}
+
+.sourceChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding-left: 2px;
+}
+
+.sourceChip {
+  font-size: 0.7rem;
+  height: 22px;
+  background: #e3f2fd;
+  color: var(--color-primary-dark);
+  text-decoration: none;
+}
+
+.sourceChip:hover {
+  background: #bbdefb;
+}
+
+.sourceChip :global(.MuiChip-icon) {
+  color: var(--color-primary);
+  margin-left: 6px;
+}
+
+.loadingRow {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.loadingBubble {
+  padding: 12px 14px;
+  background: #f1f5f9;
+  border-radius: 4px 16px 16px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inputRow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.textField :global(.MuiOutlinedInput-root) {
+  border-radius: 24px;
+  background: #f8fafc;
+}
+
+.sendButton {
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 20px;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.sendButton:hover {
+  background: var(--color-primary-dark);
+}
+
+.sendButton:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+}

@@ -1,0 +1,43 @@
+.loading {
+  padding-top: 64px;
+  text-align: center;
+}
+
+.backButton {
+  margin-bottom: 16px;
+  color: var(--color-text-secondary);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.headerInfo {
+  flex: 1;
+}
+
+.statsGrid {
+  margin-bottom: 16px;
+}
+
+.statCardContent {
+  padding: 16px;
+}
+
+.statLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: block;
+}
+
+.statValue {
+  margin-top: 4px;
+}
+
+.logTitle {
+  margin-bottom: 8px;
+}

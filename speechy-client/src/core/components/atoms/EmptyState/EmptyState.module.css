@@ -1,0 +1,15 @@
+.root {
+  text-align: center;
+  padding: 64px 16px;
+}
+
+.icon {
+  margin-bottom: 16px;
+  color: var(--color-text-disabled);
+  display: flex;
+  justify-content: center;
+}
+
+.subtitle {
+  margin-bottom: 24px;
+}

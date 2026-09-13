@@ -1,0 +1,13 @@
+.filterBar {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.searchField {
+  min-width: 240px;
+}
+
+.seasonSelect {
+  min-width: 160px;
+}

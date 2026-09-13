@@ -1,0 +1,96 @@
+.row {
+  cursor: pointer;
+}
+
+.episodeNumberCell {
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.titleCell {
+  font-weight: 600;
+}
+
+.charactersWrap {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.characterChip {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 150px;
+}
+
+.characterChip :global(.MuiChip-label) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.overflowChip {
+  flex-shrink: 0;
+}
+
+.enChip {
+  margin-right: 4px;
+}
+
+.briefSummaryCell {
+  white-space: normal;
+  vertical-align: top;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.briefSummaryText {
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.detailCell {
+  padding: 0;
+  border: 0;
+}
+
+.detailPanel {
+  padding: 24px;
+  background: var(--color-bg-default);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.languageRow {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.detailColumns {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.detailColumn {
+  flex: 1;
+  min-width: 280px;
+}
+
+.detailBox {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 12px;
+  background: var(--color-bg-paper);
+  border-radius: 16px;
+  border: 1px solid var(--color-divider);
+}
+
+.transcriptBox {
+  white-space: pre-wrap;
+}

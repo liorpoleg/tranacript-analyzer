@@ -1,0 +1,12 @@
+.spinner {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.usernameCell {
+  font-weight: 600;
+}
+
+.ipCell {
+  font-family: monospace;
+}

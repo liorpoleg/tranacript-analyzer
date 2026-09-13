@@ -1,0 +1,27 @@
+.panel {
+  background: #0f1117;
+  border-radius: 16px;
+  padding: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.waiting {
+  color: #6b7280;
+  font-family: inherit;
+}
+
+.line {
+  color: #d1fae5;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.lineError {
+  color: #ef4444;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

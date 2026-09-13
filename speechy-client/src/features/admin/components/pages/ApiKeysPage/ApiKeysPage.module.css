@@ -1,0 +1,28 @@
+.alert {
+  margin-bottom: 16px;
+}
+
+.keyTitle {
+  margin-bottom: 4px;
+}
+
+.keyBox {
+  font-family: monospace;
+  background: var(--color-bg-default);
+  padding: 8px;
+  border-radius: 4px;
+  word-break: break-all;
+}
+
+.spinner {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.nameCell {
+  font-weight: 600;
+}
+
+.prefixCell {
+  font-family: monospace;
+}

@@ -1,0 +1,29 @@
+.root {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+}
+
+.tab {
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-weight: 500;
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.tab:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--color-text-primary);
+}
+
+.tabActive {
+  font-weight: 700;
+  background: #e3f2fd;
+  color: var(--color-primary);
+}
+
+.tabActive:hover {
+  background: #e3f2fd;
+  color: var(--color-primary);
+}

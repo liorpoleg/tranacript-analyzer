@@ -383,6 +383,8 @@ Add `"private": true` to `package.json`. Pin all with exact versions (`"react": 
 
 ### Atomic Design Structure
 
+> **Superseded 2026-09.** The flat layout below was the original build spec and no longer matches the code. The client was restructured into a `core/` (cross-cutting infra + generic components) + `features/<domain>/` (shows, episodes, knowledge, processing, chat, admin, dashboard) split, and styling moved from MUI `sx` to co-located CSS Modules (`ComponentName/ComponentName.tsx` + `ComponentName.module.css`). **Treat `speechy-client/.claude/CLAUDE.md` as the current source of truth for client structure and conventions** — this section is kept only for historical context on the original naming intent (e.g. `SeasonAccordion`, which the actual restructure adopted).
+
 ```
 src/
   api/
@@ -577,8 +579,8 @@ REACT_APP_API_URL=http://localhost:8000
 ### React
 - Atomic design is enforced: atoms have no data fetching, organisms can use hooks
 - No prop drilling beyond 2 levels — use React Query cache or React Context
-- No inline styles — use MUI `sx` prop exclusively
-- Every component in its own file; no barrel `index.js` that re-exports everything (causes circular deps)
+- **Styling (2026-09, supersedes "MUI `sx` exclusively"): CSS Modules only.** Every component with custom styling gets a co-located `ComponentName.module.css`; no inline `style={{}}` and no `sx` for layout/spacing/color (dynamic per-instance values go through CSS custom properties set via `style`, not through `sx`). See `speechy-client/.claude/CLAUDE.md` for the full rule and the `StyledEngineProvider injectFirst` requirement it depends on.
+- Every component in its own file, named after the component (`ComponentName/ComponentName.tsx`, not `index.tsx`); no barrel `index.ts` that re-exports everything (causes circular deps)
 - Custom hooks for all data fetching and side effects
 - `useCallback` / `useMemo` only when there is a measurable performance reason
 

@@ -1,0 +1,31 @@
+.card {
+  overflow: hidden;
+}
+
+.scrollWrap {
+  overflow-x: auto;
+}
+
+.table {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 45rem;
+}
+
+.colEpisode { width: 7%; }
+.colTitle { width: 15%; }
+.colAirDate { width: 9%; }
+.colCharacters { width: 20%; }
+.colTranslations { width: 9%; }
+.colSummary { width: 8%; }
+.colIcon { width: 3rem; }
+
+.spinner {
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.emptyMessage {
+  padding-top: 32px;
+  padding-bottom: 32px;
+}

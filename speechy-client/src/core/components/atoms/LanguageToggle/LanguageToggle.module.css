@@ -1,0 +1,6 @@
+.group :global(.MuiToggleButton-root) {
+  padding-left: 16px;
+  padding-right: 16px;
+  font-weight: 700;
+  border-radius: 8px !important;
+}

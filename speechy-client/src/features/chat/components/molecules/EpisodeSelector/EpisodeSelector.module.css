@@ -1,0 +1,35 @@
+.loading {
+  padding: 16px 0;
+  text-align: center;
+}
+
+.selectAllRow {
+  margin-bottom: 4px;
+}
+
+.divider {
+  margin-bottom: 8px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.episodeRow {
+  margin-left: 4px;
+  margin-right: 0;
+}
+
+.episodeLabel {
+  max-width: 200px;
+}
+
+.episodeNumber {
+  margin-right: 6px;
+  font-size: 0.8rem;
+  font-family: monospace;
+}

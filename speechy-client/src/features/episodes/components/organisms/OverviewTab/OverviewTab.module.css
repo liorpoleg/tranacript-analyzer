@@ -1,0 +1,64 @@
+.title {
+  font-size: 1.3rem;
+  margin-bottom: 16px;
+}
+
+.metaCard {
+  margin-bottom: 16px;
+}
+
+.metaLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.quickActionsGrid {
+  margin-bottom: 16px;
+}
+
+.quickAction {
+  cursor: pointer;
+  padding: 20px;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.quickAction:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.09);
+}
+
+.quickActionIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 20px;
+  background: transparent;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.quickActionLabel {
+  margin-bottom: 4px;
+}
+
+.quickActionDesc {
+  line-height: 1.4;
+}
+
+.recentRunsCardContent {
+  padding: 8px;
+}
+
+.recentRunsTitle {
+  padding: 12px 16px 8px;
+}
+
+.noJobs {
+  text-align: center;
+  padding-top: 24px;
+  padding-bottom: 24px;
+}

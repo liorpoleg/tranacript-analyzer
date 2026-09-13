@@ -1,0 +1,17 @@
+.dropzone {
+  border: 2px dashed var(--color-divider);
+  border-radius: var(--radius-card);
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  background: transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.dropzone:hover {
+  border-color: var(--color-primary);
+}
+
+.dropzoneActive {
+  border-color: var(--color-primary);
+}

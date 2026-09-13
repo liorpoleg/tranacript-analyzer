@@ -1,0 +1,12 @@
+.spinner {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.nameCell {
+  font-weight: 600;
+}
+
+.slugCell {
+  font-family: monospace;
+}

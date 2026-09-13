@@ -1,0 +1,11 @@
+.root {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-family: "Baloo 2";
+  font-weight: 800;
+  font-size: 1.8rem;
+  margin-top: 8px;
+}

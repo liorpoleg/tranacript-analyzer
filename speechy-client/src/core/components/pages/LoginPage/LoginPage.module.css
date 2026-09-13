@@ -1,0 +1,36 @@
+.errorAlert {
+  margin-bottom: 16px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.submitButton {
+  margin-top: 8px;
+}
+
+.divider {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.ssoRow {
+  display: flex;
+  gap: 8px;
+}
+
+.cancelButton {
+  flex-shrink: 0;
+}
+
+.signupPrompt {
+  margin-top: 20px;
+}
+
+.signupLink {
+  color: var(--color-primary);
+  font-weight: 600;
+}
