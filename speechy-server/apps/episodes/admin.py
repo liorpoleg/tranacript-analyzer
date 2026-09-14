@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Episode, EpisodeSeason, Character, Transcript, EpisodeSummary, ContextualSummary
+from .models import Episode, Character, Transcript, EpisodeSummary, ContextualSummary
 
 
 @admin.register(Character)

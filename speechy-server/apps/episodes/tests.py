@@ -6,9 +6,9 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from apps.users.models import Organization, User
-from apps.shows.models import Show, Season
-from apps.episodes.models import Character, Episode, EpisodeSeason, Transcript, TranscriptLanguage
-from apps.episodes.services import parse_episode_excel, parse_season_excel
+from apps.shows.models import Show
+from apps.episodes.models import Character, Episode, EpisodeShow, Transcript, TranscriptLanguage
+from apps.episodes.services import parse_episode_excel, parse_show_excel
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -28,8 +28,8 @@ def make_show(org, name='Test Show'):
     return Show.objects.create(name=name, organization=org)
 
 
-def make_season(show, number=1):
-    return Season.objects.create(show=show, number=number)
+def make_season(show, name='Season 1'):
+    return Show.objects.create(organization=show.organization, parent=show, name=name)
 
 
 def make_episode(show, number='1'):
@@ -99,6 +99,26 @@ class TranscriptModelTest(TestCase):
         self.assertEqual(self.episode.transcripts.count(), 3)
 
 
+class EpisodeShowCrossListingTest(TestCase):
+    """Crossover episodes: an episode can be cross-listed into more than one node."""
+
+    def setUp(self):
+        self.org = make_org()
+        self.show = make_show(self.org)
+        self.season_a = make_season(self.show, 'Season A')
+        self.season_b = make_season(self.show, 'Season B')
+        self.episode = make_episode(self.show)
+
+    def test_episode_can_belong_to_multiple_shows(self):
+        EpisodeShow.objects.create(episode=self.episode, show=self.season_a)
+        EpisodeShow.objects.create(episode=self.episode, show=self.season_b)
+        self.assertEqual(self.episode.shows.count(), 2)
+
+    def test_reverse_accessor_cross_listed_episodes(self):
+        EpisodeShow.objects.create(episode=self.episode, show=self.season_a)
+        self.assertIn(self.episode, self.season_a.cross_listed_episodes.all())
+
+
 # ── Service tests ─────────────────────────────────────────────────────────────
 
 class ParseEpisodeExcelTest(TestCase):
@@ -136,7 +156,7 @@ class ParseEpisodeExcelTest(TestCase):
         )
 
 
-class ParseSeasonExcelTest(TestCase):
+class ParseShowExcelTest(TestCase):
     def setUp(self):
         self.org = make_org()
         self.show = make_show(self.org)
@@ -156,32 +176,44 @@ class ParseSeasonExcelTest(TestCase):
         )
 
     def test_creates_episodes(self):
-        eps = parse_season_excel(self._file(), self.season, self.show)
+        eps = parse_show_excel(self._file(), self.season, self.show)
         self.assertEqual(len(eps), 2)
         self.assertTrue(Episode.objects.filter(episode_number='ep01').exists())
 
-    def test_links_to_season(self):
-        parse_season_excel(self._file(), self.season, self.show)
-        self.assertEqual(EpisodeSeason.objects.filter(season=self.season).count(), 2)
+    def test_primary_show_is_root_not_the_uploaded_node(self):
+        eps = parse_show_excel(self._file(), self.season, self.show)
+        for ep in eps:
+            self.assertEqual(ep.primary_show_id, self.show.id)
+
+    def test_links_to_uploaded_node(self):
+        parse_show_excel(self._file(), self.season, self.show)
+        self.assertEqual(EpisodeShow.objects.filter(show=self.season).count(), 2)
 
     def test_creates_origin_transcripts(self):
-        eps = parse_season_excel(self._file(), self.season, self.show)
+        eps = parse_show_excel(self._file(), self.season, self.show)
         for ep in eps:
             self.assertTrue(
                 Transcript.objects.filter(episode=ep, language='origin').exists()
             )
 
     def test_dialogue_rows_parsed(self):
-        eps = parse_season_excel(self._file(), self.season, self.show)
+        eps = parse_show_excel(self._file(), self.season, self.show)
         t = Transcript.objects.get(episode=eps[0], language='origin')
         texts = [r['text'] for r in t.rows]
         self.assertIn('Hello', texts)
         self.assertIn('Hi', texts)
 
     def test_idempotent(self):
-        parse_season_excel(self._file(), self.season, self.show)
-        parse_season_excel(self._file(), self.season, self.show)
+        parse_show_excel(self._file(), self.season, self.show)
+        parse_show_excel(self._file(), self.season, self.show)
         self.assertEqual(Episode.objects.filter(primary_show=self.show).count(), 2)
+
+    def test_upload_to_nested_subseason_still_roots_to_top_level(self):
+        subseason = make_season(self.season, 'Sub-season')
+        eps = parse_show_excel(self._file(), subseason, self.show)
+        for ep in eps:
+            self.assertEqual(ep.primary_show_id, self.show.id)
+        self.assertEqual(EpisodeShow.objects.filter(show=subseason).count(), 2)
 
 
 # ── API endpoint tests ────────────────────────────────────────────────────────
@@ -228,7 +260,10 @@ class EpisodeUploadAPITest(TestCase):
         self.assertTrue(resp.data['data']['has_origin_transcript'])
 
 
-class SeasonUploadAPITest(TestCase):
+class ShowUploadAPITest(TestCase):
+    """Was SeasonUploadAPITest — /api/seasons/{id}/upload/ is now /api/shows/{id}/upload/,
+    and it works on any node (root show or nested 'season'), not just seasons."""
+
     def setUp(self):
         self.org = make_org()
         self.user = make_user(self.org)
@@ -250,7 +285,7 @@ class SeasonUploadAPITest(TestCase):
 
     def test_season_upload_creates_episodes(self):
         resp = self.client.post(
-            f'/api/seasons/{self.season.id}/upload/',
+            f'/api/shows/{self.season.id}/upload/',
             {'file': self._file()},
             format='multipart',
         )
@@ -258,8 +293,16 @@ class SeasonUploadAPITest(TestCase):
         self.assertEqual(resp.data['data']['episodes_created'], 1)
 
     def test_season_upload_no_file_returns_400(self):
-        resp = self.client.post(f'/api/seasons/{self.season.id}/upload/')
+        resp = self.client.post(f'/api/shows/{self.season.id}/upload/')
         self.assertEqual(resp.status_code, 400)
+
+    def test_root_show_upload_also_works(self):
+        resp = self.client.post(
+            f'/api/shows/{self.show.id}/upload/',
+            {'file': self._file()},
+            format='multipart',
+        )
+        self.assertEqual(resp.status_code, 201)
 
 
 # ── Task tests (mocked LLM) ───────────────────────────────────────────────────

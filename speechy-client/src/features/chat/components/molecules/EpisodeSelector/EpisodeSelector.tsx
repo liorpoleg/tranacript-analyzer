@@ -7,9 +7,12 @@ interface EpisodeSelectorProps {
   selected: string[];
   onChange: (ids: string[]) => void;
   isLoading?: boolean;
+  emptyMessage?: string;
 }
 
-export default function EpisodeSelector({ episodes, selected, onChange, isLoading }: EpisodeSelectorProps): JSX.Element {
+export default function EpisodeSelector({
+  episodes, selected, onChange, isLoading, emptyMessage = 'No episodes in this season yet.',
+}: EpisodeSelectorProps): JSX.Element {
   const allSelected = episodes.length > 0 && selected.length === episodes.length;
   const someSelected = selected.length > 0 && !allSelected;
 
@@ -28,7 +31,7 @@ export default function EpisodeSelector({ episodes, selected, onChange, isLoadin
   }
 
   if (episodes.length === 0) {
-    return <Typography variant="body2" color="text.secondary">No episodes in this season yet.</Typography>;
+    return <Typography variant="body2" color="text.secondary">{emptyMessage}</Typography>;
   }
 
   return (

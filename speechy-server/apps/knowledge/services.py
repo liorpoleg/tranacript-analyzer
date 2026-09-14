@@ -21,10 +21,9 @@ def extract_text_from_file(file_path: str) -> str:
     return ''
 
 
-def save_knowledge_file(file, show=None, season=None) -> KnowledgeFile:
+def save_knowledge_file(file, show) -> KnowledgeFile:
     media_root = Path(settings.MEDIA_ROOT)
-    scope = f'show_{show.id}' if show else f'season_{season.id}'
-    dest_dir = media_root / 'knowledge' / scope
+    dest_dir = media_root / 'knowledge' / f'show_{show.id}'
     dest_dir.mkdir(parents=True, exist_ok=True)
     dest_path = dest_dir / file.name
     with open(dest_path, 'wb') as f:
@@ -33,7 +32,6 @@ def save_knowledge_file(file, show=None, season=None) -> KnowledgeFile:
     content = extract_text_from_file(str(dest_path))
     return KnowledgeFile.objects.create(
         show=show,
-        season=season,
         original_filename=file.name,
         file_path=str(dest_path.relative_to(media_root)),
         content_text=content,
@@ -42,21 +40,21 @@ def save_knowledge_file(file, show=None, season=None) -> KnowledgeFile:
 
 def get_knowledge_for_episode(episode) -> list[str]:
     show = episode.primary_show
-    season_ids = episode.episodeseason_set.values_list('season_id', flat=True)
+    node_ids = list(episode.episodeshow_set.values_list('show_id', flat=True))
     texts = []
     for kf in KnowledgeFile.objects.filter(show=show):
         texts.append(f'[Show: {show.name}]\n{kf.content_text}')
-    for kf in KnowledgeFile.objects.filter(season_id__in=season_ids):
+    for kf in KnowledgeFile.objects.filter(show_id__in=node_ids):
         texts.append(f'[Season knowledge]\n{kf.content_text}')
     return texts
 
 
 def get_questions_for_episode(episode) -> list[str]:
     show = episode.primary_show
-    season_ids = episode.episodeseason_set.values_list('season_id', flat=True)
+    node_ids = list(episode.episodeshow_set.values_list('show_id', flat=True))
     questions = list(
         Question.objects.filter(show=show, is_active=True).values_list('text', flat=True)
     ) + list(
-        Question.objects.filter(season_id__in=season_ids, is_active=True).values_list('text', flat=True)
+        Question.objects.filter(show_id__in=node_ids, is_active=True).values_list('text', flat=True)
     )
     return questions

@@ -1,11 +1,19 @@
 import uuid
+from django.core.exceptions import ValidationError
 from django.db import models
 from apps.users.models import Organization
 
 
 class Show(models.Model):
+    """A node in the recursive shows/seasons tree. A 'season' is just a Show whose parent is set."""
+
+    MAX_DEPTH = 10
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='shows')
+    parent = models.ForeignKey(
+        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='children'
+    )
     name = models.CharField(max_length=500)
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
@@ -13,30 +21,41 @@ class Show(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['name']
+        ordering = ['created_at']
 
     def __str__(self):
         return self.name
 
+    def clean(self):
+        if self.parent_id:
+            if self.parent_id == self.id:
+                raise ValidationError('A show cannot be its own parent.')
+            self.organization_id = self.parent.organization_id
+            depth = 1
+            node = self.parent
+            while node is not None:
+                if node.id == self.id:
+                    raise ValidationError('A show cannot be its own ancestor.')
+                if depth > self.MAX_DEPTH:
+                    raise ValidationError(f'Nesting exceeds max depth of {self.MAX_DEPTH}.')
+                node = node.parent
+                depth += 1
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
     @property
-    def episode_count(self):
+    def direct_episode_count(self):
         return self.episodes.count()
 
     @property
-    def season_count(self):
-        return self.seasons.count()
+    def direct_children_count(self):
+        return self.children.count()
 
-
-class Season(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    show = models.ForeignKey(Show, on_delete=models.CASCADE, related_name='seasons')
-    number = models.PositiveIntegerField()
-    title = models.CharField(max_length=500, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ['show', 'number']
-        ordering = ['show', 'number']
-
-    def __str__(self):
-        return f'{self.show.name} — Season {self.number}'
+    def get_root(self):
+        """Walk up `parent` to the top-level ancestor (returns self if already a root)."""
+        node = self
+        while node.parent_id:
+            node = node.parent
+        return node

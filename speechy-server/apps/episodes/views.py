@@ -8,7 +8,7 @@ from .serializers import (
     EpisodeSerializer, TranscriptSerializer,
     EpisodeSummarySerializer, ContextualSummarySerializer,
 )
-from .services import get_episodes_for_user, parse_episode_excel, add_episode_to_season
+from .services import get_episodes_for_user, parse_episode_excel, add_episode_to_show
 from apps.processing.services import enqueue_job
 
 
@@ -33,9 +33,9 @@ class EpisodeViewSet(viewsets.ModelViewSet):
         s = EpisodeSerializer(data=request.data)
         s.is_valid(raise_exception=True)
         episode = s.save()
-        season_id = request.data.get('season')
-        if season_id:
-            add_episode_to_season(episode, season_id)
+        show_id = request.data.get('show')
+        if show_id:
+            add_episode_to_show(episode, show_id)
         return Response({'data': EpisodeSerializer(episode).data, 'error': None},
                         status=status.HTTP_201_CREATED)
 

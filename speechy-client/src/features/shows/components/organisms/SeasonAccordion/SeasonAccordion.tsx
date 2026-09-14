@@ -1,71 +1,64 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, Stack, Collapse, TextField } from '@mui/material';
+import { Box, Typography, Button, Collapse, TextField } from '@mui/material';
 import { Plus, ChatCircleText, Upload, CaretDown, CaretRight } from '@phosphor-icons/react';
-import AppButton from '@/core/components/atoms/AppButton/AppButton';
 import AppModal from '@/core/components/atoms/AppModal/AppModal';
 import EpisodeTable from '@/features/shows/components/organisms/EpisodeTable/EpisodeTable';
-import { useSeasonEpisodes, useCreateEpisode, useSeasonUpload } from '@/features/episodes/services/episodes';
+import { useShowEpisodes, useShowUpload } from '@/features/episodes/services/episodes';
+import { useShowChildren, useCreateChildShow } from '@/features/shows/services/shows';
 import { useToast } from '@/core/contexts/ToastContext';
 import { buildRoute } from '@/core/constants/routes';
-import type { Season } from '@/core/types';
+import type { Show } from '@/core/types';
 import styles from './SeasonAccordion.module.css';
 
-interface EpisodeFormState {
-  episode_number: string;
-  title: string;
-  air_date: string;
-}
-
 interface SeasonAccordionProps {
-  season: Season;
-  showId: string;
+  season: Show;
+  depth?: number;
 }
 
-export default function SeasonAccordion({ season, showId }: SeasonAccordionProps): JSX.Element {
+export default function SeasonAccordion({ season, depth = 0 }: SeasonAccordionProps): JSX.Element {
   const navigate = useNavigate();
   const toast = useToast();
-  const { data: episodes = [], isLoading } = useSeasonEpisodes(season.id);
-  const createEpisode = useCreateEpisode();
-  const seasonUpload = useSeasonUpload(season.id);
-  const [open, setOpen] = useState<boolean>(false);
+  const { data: episodes = [], isLoading } = useShowEpisodes(season.id);
+  const { data: subSeasons = [] } = useShowChildren(season.id);
+  const createSubSeason = useCreateChildShow(season.id);
+  const showUpload = useShowUpload(season.id);
+  const [subSeasonModal, setSubSeasonModal] = useState<boolean>(false);
+  const [subSeasonName, setSubSeasonName] = useState<string>('');
   const [collapsed, setCollapsed] = useState<boolean>(true);
-  const [form, setForm] = useState<EpisodeFormState>({ episode_number: '', title: '', air_date: '' });
 
-  const handleCreate = async (): Promise<void> => {
+  const handleCreateSubSeason = async (): Promise<void> => {
     try {
-      const ep = await createEpisode.mutateAsync({ ...form, primary_show: showId, season: season.id });
-      toast.show('Episode created!', 'success');
-      setOpen(false);
-      navigate(buildRoute.episode(ep.id));
+      await createSubSeason.mutateAsync({ name: subSeasonName.trim() });
+      toast.show('Sub-season added!', 'success');
+      setSubSeasonModal(false);
+      setSubSeasonName('');
     } catch {
-      toast.show('Failed to create episode.', 'error');
+      toast.show('Failed to add sub-season.', 'error');
     }
   };
 
-  const handleSeasonUpload = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+  const handleShowUpload = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const result = await seasonUpload.mutateAsync(file);
+      const result = await showUpload.mutateAsync(file);
       toast.show(`Uploaded ${result.episodes_created} episode(s)!`, 'success');
     } catch {
-      toast.show('Season upload failed.', 'error');
+      toast.show('Upload failed.', 'error');
     }
     e.target.value = '';
   };
 
   return (
-    <>
+    <Box style={{ '--depth': depth } as React.CSSProperties} className={styles.wrap}>
       <Box
         onClick={() => setCollapsed((c) => !c)}
         className={`${styles.header} ${collapsed ? styles.headerCollapsed : styles.headerExpanded}`}
       >
         <Box className={styles.headerLeft}>
           {collapsed ? <CaretRight size={15} weight="bold" /> : <CaretDown size={15} weight="bold" />}
-          <Typography fontWeight={700}>
-            Season {season.number}{season.title ? ` — ${season.title}` : ''}
-          </Typography>
+          <Typography fontWeight={700}>{season.name}</Typography>
           {collapsed && episodes.length > 0 && (
             <Typography variant="body1" color="text.secondary">
               {episodes.length} episode{episodes.length !== 1 ? 's' : ''}
@@ -85,51 +78,50 @@ export default function SeasonAccordion({ season, showId }: SeasonAccordionProps
             size="small"
             component="label"
             startIcon={<Upload size={14} />}
-            disabled={seasonUpload.isLoading}
+            disabled={showUpload.isLoading}
             className={styles.actionButton}
           >
-            {seasonUpload.isLoading ? 'Uploading…' : 'Upload Season'}
-            <input type="file" hidden accept=".xlsx,.xls" onChange={handleSeasonUpload} />
+            {showUpload.isLoading ? 'Uploading…' : 'Upload Multiple Episodes'}
+            <input type="file" hidden accept=".xlsx,.xls" onChange={handleShowUpload} />
           </Button>
-          <AppButton size="small" startIcon={<Plus size={14} />} onClick={() => setOpen(true)}>
-            Add Episode
-          </AppButton>
+          <Button
+            size="small"
+            startIcon={<Plus size={14} />}
+            onClick={() => setSubSeasonModal(true)}
+            className={styles.actionButton}
+          >
+            Add Sub-season
+          </Button>
         </Box>
       </Box>
 
       <Collapse in={!collapsed}>
-        <Box className={styles.tableWrap}>
-          <EpisodeTable
-            episodes={episodes}
-            isLoading={isLoading}
-            onOpen={(ep) => navigate(buildRoute.episode(ep.id))}
-          />
+        <Box className={styles.body}>
+          {subSeasons.map((sub) => (
+            <SeasonAccordion key={sub.id} season={sub} depth={depth + 1} />
+          ))}
+          <Box className={styles.tableWrap}>
+            <EpisodeTable
+              episodes={episodes}
+              isLoading={isLoading}
+              onOpen={(ep) => navigate(buildRoute.episode(ep.id))}
+            />
+          </Box>
         </Box>
       </Collapse>
 
-      <AppModal open={open} onClose={() => setOpen(false)} title="Add Episode" onConfirm={handleCreate} confirmLabel="Create" loading={createEpisode.isLoading}>
-        <Stack spacing={2}>
-          {(['episode_number', 'title', 'air_date'] as const).map((field) => {
-            const labelMap: Record<typeof field, string> = {
-              episode_number: 'Episode Number *',
-              title: 'Title *',
-              air_date: 'Air Date',
-            };
-            return (
-              <Box key={field}>
-                <Typography variant="body2" fontWeight={700} mb={0.75}>{labelMap[field]}</Typography>
-                <TextField
-                  fullWidth
-                  size="small"
-                  type={field === 'air_date' ? 'date' : 'text'}
-                  value={form[field]}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm((p) => ({ ...p, [field]: e.target.value }))}
-                />
-              </Box>
-            );
-          })}
-        </Stack>
+      <AppModal open={subSeasonModal} onClose={() => setSubSeasonModal(false)} title="Add Sub-season" onConfirm={handleCreateSubSeason} confirmLabel="Add" loading={createSubSeason.isLoading}>
+        <Box>
+          <Typography variant="body2" fontWeight={700} mb={0.75}>Sub-season Name</Typography>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Season 1A"
+            value={subSeasonName}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSubSeasonName(e.target.value)}
+          />
+        </Box>
       </AppModal>
-    </>
+    </Box>
   );
 }

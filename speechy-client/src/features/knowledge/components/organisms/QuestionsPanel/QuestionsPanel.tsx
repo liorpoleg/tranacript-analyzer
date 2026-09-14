@@ -10,15 +10,14 @@ import styles from './QuestionsPanel.module.css';
 
 interface QuestionsPanelProps {
   questions?: Question[];
-  showId?: string;
-  seasonId?: string;
+  showId: string | undefined;
   isLoading?: boolean;
 }
 
-export default function QuestionsPanel({ questions = [], showId, seasonId, isLoading }: QuestionsPanelProps): JSX.Element {
+export default function QuestionsPanel({ questions = [], showId, isLoading }: QuestionsPanelProps): JSX.Element {
   const toast = useToast();
   const [text, setText] = useState<string>('');
-  const create = useCreateQuestion({ showId, seasonId });
+  const create = useCreateQuestion(showId);
   const del = useDeleteQuestion();
 
   const handleAdd = async (): Promise<void> => {

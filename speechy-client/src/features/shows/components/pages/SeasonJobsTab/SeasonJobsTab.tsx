@@ -4,7 +4,7 @@ import {
 } from '@mui/material';
 import StatusBadge from '@/core/components/atoms/StatusBadge/StatusBadge';
 import JobStatusRow from '@/features/processing/components/molecules/JobStatusRow/JobStatusRow';
-import { useSeasonJobs } from '@/features/processing/services/jobs';
+import { useShowJobs } from '@/features/processing/services/jobs';
 import { TERMINAL_STATUSES, JOB_TYPE_LABELS } from '@/features/processing/utils/jobStatus';
 import type { JobStatus, JobType } from '@/core/types';
 import styles from './SeasonJobsTab.module.css';
@@ -13,7 +13,7 @@ const STATUS_ORDER: JobStatus[] = ['running', 'pending', 'failed', 'stopped', 'c
 
 export default function JobsTab(): JSX.Element {
   const { id } = useParams<{ id: string }>();
-  const { data: jobs, isLoading } = useSeasonJobs(id);
+  const { data: jobs, isLoading } = useShowJobs(id);
 
   const activeJobs = jobs?.filter((j) => !TERMINAL_STATUSES.has(j.status)) ?? [];
   const doneJobs = jobs?.filter((j) => TERMINAL_STATUSES.has(j.status)) ?? [];

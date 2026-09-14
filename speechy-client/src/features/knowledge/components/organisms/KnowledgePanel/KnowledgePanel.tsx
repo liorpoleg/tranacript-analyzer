@@ -8,14 +8,13 @@ import styles from './KnowledgePanel.module.css';
 
 interface KnowledgePanelProps {
   files?: KnowledgeFile[];
-  showId?: string;
-  seasonId?: string;
+  showId: string | undefined;
   isLoading?: boolean;
 }
 
-export default function KnowledgePanel({ files = [], showId, seasonId, isLoading }: KnowledgePanelProps): JSX.Element {
+export default function KnowledgePanel({ files = [], showId, isLoading }: KnowledgePanelProps): JSX.Element {
   const toast = useToast();
-  const upload = useUploadKnowledge({ showId, seasonId });
+  const upload = useUploadKnowledge(showId);
   const deleteFile = useDeleteKnowledge();
 
   const handleDrop = async ([file]: File[]): Promise<void> => {

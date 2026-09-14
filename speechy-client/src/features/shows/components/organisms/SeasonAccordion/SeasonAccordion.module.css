@@ -1,3 +1,7 @@
+.wrap {
+  margin-left: calc(var(--depth, 0) * 20px);
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -39,6 +43,10 @@
 .actionButton {
   color: var(--color-text-secondary);
   font-size: 0.75rem;
+}
+
+.body {
+  margin-bottom: 8px;
 }
 
 .tableWrap {

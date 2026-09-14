@@ -3,26 +3,26 @@ import openpyxl
 from datetime import datetime
 from django.db import transaction
 
-from .models import Episode, EpisodeSeason, Transcript, Character, TranscriptLanguage
+from .models import Episode, EpisodeShow, Transcript, Character, TranscriptLanguage
 
 
 def get_episodes_for_user(user):
     return Episode.objects.filter(
         primary_show__organization=user.organization
     ).select_related('primary_show', 'summary').prefetch_related(
-        'transcripts', 'characters', 'episodeseason_set__season'
+        'transcripts', 'characters', 'episodeshow_set__show'
     )
 
 
-def add_episode_to_season(episode: Episode, season_id: str, order: int = None):
-    EpisodeSeason.objects.get_or_create(
-        episode=episode, season_id=season_id,
+def add_episode_to_show(episode: Episode, show_id: str, order: int = None):
+    EpisodeShow.objects.get_or_create(
+        episode=episode, show_id=show_id,
         defaults={'episode_order': order},
     )
 
 
-def remove_episode_from_season(episode: Episode, season_id: str):
-    EpisodeSeason.objects.filter(episode=episode, season_id=season_id).delete()
+def remove_episode_from_show(episode: Episode, show_id: str):
+    EpisodeShow.objects.filter(episode=episode, show_id=show_id).delete()
 
 
 def _parse_flexible_date(date_str):
@@ -108,8 +108,11 @@ def parse_episode_excel(episode: Episode, file) -> Transcript:
 
 
 @transaction.atomic
-def parse_season_excel(file, season, show) -> list:
-    """Parse whole-season Excel → Episodes with origin Transcripts. Returns created episodes."""
+def parse_show_excel(file, show, root) -> list:
+    """Parse a whole-node Excel upload → Episodes with origin Transcripts. `show` is the
+    node the file was uploaded to (any depth); `root` is its top-level ancestor, used as
+    each episode's primary_show for display (matches the pre-existing convention that
+    primary_show always points at a root show). Returns created episodes."""
     wb = openpyxl.load_workbook(file, read_only=True, data_only=True)
     ws = wb.active
 
@@ -155,11 +158,11 @@ def parse_season_excel(file, season, show) -> list:
                     break
 
         episode, _ = Episode.objects.update_or_create(
-            primary_show=show,
+            primary_show=root,
             episode_number=ep_id,
             defaults={'title': ep_id, 'air_date': air_date},
         )
-        add_episode_to_season(episode, str(season.id), order=ep_order)
+        add_episode_to_show(episode, str(show.id), order=ep_order)
 
         ep_chars = [
             _get_or_create_character(ref, info['name'], info['actor'])

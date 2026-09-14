@@ -52,7 +52,7 @@ export default function ShowCard({ show }: ShowCardProps): JSX.Element {
         <Box className={styles.stats}>
           <Box className={styles.stat}>
             <Stack size={13} weight="fill" />
-            <Typography variant="caption" fontWeight={600}>{show.season_count ?? 0} seasons</Typography>
+            <Typography variant="caption" fontWeight={600}>{show.direct_children_count ?? 0} seasons</Typography>
           </Box>
           <Box className={styles.stat}>
             <FilmStrip size={13} weight="fill" />
