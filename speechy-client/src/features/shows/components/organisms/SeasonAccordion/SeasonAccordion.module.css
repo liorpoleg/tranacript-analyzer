@@ -1,0 +1,46 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border-radius: 16px;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.header:hover {
+  background: var(--color-bg-default);
+}
+
+.headerCollapsed {
+  margin-bottom: 16px;
+}
+
+.headerExpanded {
+  margin-bottom: 8px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.headerActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.actionButton {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+
+.tableWrap {
+  margin-bottom: 24px;
+}

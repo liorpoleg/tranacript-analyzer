@@ -1,0 +1,12 @@
+.card {
+  overflow: hidden;
+}
+
+.container {
+  overflow-x: auto;
+}
+
+.spinnerCell {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}

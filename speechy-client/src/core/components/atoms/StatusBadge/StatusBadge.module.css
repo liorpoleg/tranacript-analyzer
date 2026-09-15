@@ -1,0 +1,8 @@
+.badge {
+  background: var(--badge-bg);
+  color: var(--badge-color);
+  font-weight: 700;
+  font-size: 0.7rem;
+  height: 22px;
+  text-transform: capitalize;
+}

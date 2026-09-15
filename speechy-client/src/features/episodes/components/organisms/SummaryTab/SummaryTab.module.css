@@ -1,0 +1,51 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 1.3rem;
+}
+
+.alert {
+  margin-bottom: 16px;
+}
+
+.loading {
+  text-align: center;
+  padding: 24px 0;
+}
+
+.emptyCard {
+  text-align: center;
+  padding: 32px 0;
+}
+
+.cardContent {
+  padding: 24px;
+}
+
+.generatedAt {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.topicsBlock {
+  margin-bottom: 20px;
+}
+
+.topicsTitle {
+  margin-bottom: 8px;
+}
+
+.topicsChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.summaryTitle {
+  margin-bottom: 8px;
+}

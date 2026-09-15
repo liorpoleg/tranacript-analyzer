@@ -1,0 +1,54 @@
+.cardContent {
+  padding: 0;
+}
+
+.header {
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rows {
+  overflow-y: auto;
+}
+
+.row {
+  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row:hover {
+  background: var(--color-bg-default);
+}
+
+@media (min-width: 600px) {
+  .row {
+    padding: 10px 24px;
+    flex-direction: row;
+    gap: 16px;
+  }
+}
+
+.characterName {
+  width: 100%;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+@media (min-width: 600px) {
+  .characterName {
+    width: 130px;
+  }
+}
+
+.text {
+  line-height: 1.6;
+}

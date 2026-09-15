@@ -1,0 +1,68 @@
+.loading {
+  padding-top: 64px;
+  text-align: center;
+}
+
+.backButton {
+  margin-bottom: 16px;
+  color: var(--color-text-secondary);
+}
+
+.header {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 32px;
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  font-family: "Baloo 2";
+}
+
+.headerInfo {
+  flex: 1;
+}
+
+.headerStats {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  color: var(--color-text-secondary);
+}
+
+.headerActions {
+  display: flex;
+  gap: 8px;
+}
+
+.emptySeasons {
+  color: var(--color-text-secondary);
+  text-align: center;
+  padding: 48px 0;
+}
+
+.divider {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.researchTitle {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+.researchCardContent {
+  padding: 24px;
+}

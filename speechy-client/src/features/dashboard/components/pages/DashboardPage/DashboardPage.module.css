@@ -1,0 +1,49 @@
+.statsGrid {
+  margin-bottom: 28px;
+}
+
+.cardContent {
+  padding: 0;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+}
+
+.cardTitle {
+  font-size: 0.95rem;
+}
+
+.cardDivider {
+  border-top: 1px solid var(--color-divider);
+}
+
+.centeredState {
+  padding: 40px;
+  text-align: center;
+}
+
+.showsGrid {
+  padding: 16px;
+}
+
+.emptyAction {
+  margin-top: 16px;
+}
+
+.fullHeightCard {
+  height: 100%;
+}
+
+.smallCenteredState {
+  padding: 32px;
+  text-align: center;
+}
+
+.noActivity {
+  text-align: center;
+  padding: 32px 0;
+}

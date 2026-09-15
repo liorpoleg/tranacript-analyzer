@@ -1,0 +1,22 @@
+.root {
+  min-height: 100vh;
+  background: var(--color-bg-default);
+}
+
+.content {
+  max-width: var(--page-max-width, 1280px);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 36px 16px;
+}
+
+.filterBar {
+  margin-bottom: 16px;
+}
+
+@media (min-width: 900px) {
+  .content {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+}

@@ -1,0 +1,9 @@
+.spinner {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.timestampCell {
+  font-family: monospace;
+  font-size: 0.8rem;
+}

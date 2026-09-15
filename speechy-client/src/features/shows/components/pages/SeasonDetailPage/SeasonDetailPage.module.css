@@ -1,0 +1,14 @@
+.backButton {
+  margin-bottom: 16px;
+  color: var(--color-text-secondary);
+}
+
+.divider {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.chatTitle {
+  font-size: 1.2rem;
+  margin-bottom: 16px;
+}

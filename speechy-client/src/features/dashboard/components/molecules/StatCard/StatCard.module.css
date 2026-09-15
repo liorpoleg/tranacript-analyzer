@@ -1,0 +1,36 @@
+.cardContent {
+  padding: 20px;
+}
+
+.cardContent:last-child {
+  padding-bottom: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.label {
+  line-height: 1.3;
+}
+
+.iconWrap {
+  padding: 7px;
+  border-radius: 20px;
+  background: var(--stat-bg);
+  color: var(--stat-accent);
+  display: flex;
+  flex-shrink: 0;
+}
+
+.value {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-text-primary);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}

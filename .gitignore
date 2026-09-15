@@ -31,7 +31,4 @@ bin/
 *.ntvs*
 
 .claude/
-
-# Python bytecode caches (any depth)
-__pycache__/
-*.py[cod]
+.agents/
