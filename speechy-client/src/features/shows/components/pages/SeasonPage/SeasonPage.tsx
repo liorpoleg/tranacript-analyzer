@@ -3,7 +3,7 @@ import { Button, Typography } from '@mui/material';
 import { ArrowLeft } from '@phosphor-icons/react';
 import PageLayout from '@/core/components/templates/PageLayout/PageLayout';
 import SeasonTabBar from '@/features/shows/components/molecules/SeasonTabBar/SeasonTabBar';
-import { useSeason } from '@/features/shows/services/shows';
+import { useShow } from '@/features/shows/services/shows';
 import { usePageTitle } from '@/core/hooks/usePageTitle';
 import styles from './SeasonPage.module.css';
 
@@ -20,8 +20,8 @@ export default function SeasonPage(): JSX.Element {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  const { data: season } = useSeason(id);
-  const title = season ? `Season ${season.number}${season.title ? ` — ${season.title}` : ''}` : 'Season';
+  const { data: season } = useShow(id);
+  const title = season?.name ?? 'Season';
 
   usePageTitle(title);
 

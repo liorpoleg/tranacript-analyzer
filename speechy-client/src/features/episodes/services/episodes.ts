@@ -9,10 +9,6 @@ import type {
   ProcessingJob,
 } from '@/core/types';
 
-interface CreateEpisodeVariables extends Record<string, unknown> {
-  season?: string;
-}
-
 export function useEpisodes(showId?: string) {
   return useQuery<Episode[], Error>({
     queryKey: ['episodes', { showId }],
@@ -23,11 +19,18 @@ export function useEpisodes(showId?: string) {
   });
 }
 
-export function useSeasonEpisodes(seasonId: string | undefined) {
+// A node's cross-listed episodes (via the Episode<->Show M2M). Pass
+// includeDescendants to also pull in every descendant node's episodes.
+export function useShowEpisodes(showId: string | undefined, includeDescendants = false) {
   return useQuery<Episode[], Error>({
-    queryKey: ['season-episodes', seasonId],
-    queryFn: () => client.get(API.SEASON_EPISODES(seasonId as string)).then((r) => r.data.data),
-    enabled: !!seasonId,
+    queryKey: ['show-episodes', showId, includeDescendants],
+    queryFn: () =>
+      client
+        .get(API.SHOW_EPISODES(showId as string), {
+          params: includeDescendants ? { include_descendants: 'true' } : {},
+        })
+        .then((r) => r.data.data),
+    enabled: !!showId,
   });
 }
 
@@ -39,18 +42,6 @@ export function useEpisode(id: string | undefined) {
   });
 }
 
-
-export function useCreateEpisode() {
-  const qc = useQueryClient();
-  return useMutation<Episode, Error, CreateEpisodeVariables>({
-    mutationFn: (data: CreateEpisodeVariables) =>
-      client.post(API.EPISODES, data).then((r) => r.data.data),
-    onSuccess: (_, data: CreateEpisodeVariables) => {
-      qc.invalidateQueries({ queryKey: ['episodes'] });
-      if (data.season) qc.invalidateQueries({ queryKey: ['season-episodes', data.season] });
-    },
-  });
-}
 
 export function useUpdateEpisode(id: string | undefined) {
   const qc = useQueryClient();
@@ -67,7 +58,7 @@ export function useDeleteEpisode() {
     mutationFn: (id: string) => client.delete(API.EPISODE(id)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['episodes'] });
-      qc.invalidateQueries({ queryKey: ['season-episodes'] });
+      qc.invalidateQueries({ queryKey: ['show-episodes'] });
     },
   });
 }
@@ -98,21 +89,21 @@ export function useUploadTranscript(episodeId: string) {
   });
 }
 
-export function useSeasonUpload(seasonId: string) {
+export function useShowUpload(showId: string) {
   const qc = useQueryClient();
   return useMutation<{ episodes_created: number; episode_ids: string[] }, Error, File>({
     mutationFn: (file: File) => {
       const form = new FormData();
       form.append('file', file);
       return client
-        .post(API.SEASON_UPLOAD(seasonId), form, {
+        .post(API.SHOW_UPLOAD(showId), form, {
           headers: { 'Content-Type': 'multipart/form-data' },
         })
         .then((r) => r.data.data);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['episodes'] });
-      qc.invalidateQueries({ queryKey: ['season-episodes', seasonId] });
+      qc.invalidateQueries({ queryKey: ['show-episodes', showId] });
     },
   });
 }

@@ -1,11 +1,9 @@
 import tempfile
-from pathlib import Path
-from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from apps.users.models import Organization, User
-from apps.shows.models import Show, Season
-from apps.episodes.models import Episode, EpisodeSeason
+from apps.shows.models import Show
+from apps.episodes.models import Episode, EpisodeShow
 from apps.knowledge.models import KnowledgeFile, Question
 from apps.knowledge.services import (
     extract_text_from_file,
@@ -17,42 +15,28 @@ from apps.knowledge.services import (
 def make_hierarchy():
     org = Organization.objects.create(name='Test Org', slug='test-org')
     show = Show.objects.create(organization=org, name='My Show')
-    season = Season.objects.create(show=show, number=1)
+    season = Show.objects.create(organization=org, parent=show, name='Season 1')
     episode = Episode.objects.create(primary_show=show, episode_number='S01E01', title='Pilot')
-    EpisodeSeason.objects.create(episode=episode, season=season)
+    EpisodeShow.objects.create(episode=episode, show=season)
     return org, show, season, episode
 
 
-class KnowledgeFileValidationTest(TestCase):
+class KnowledgeFileModelTest(TestCase):
     def setUp(self):
         org = Organization.objects.create(name='Test Org', slug='test-org')
         self.show = Show.objects.create(organization=org, name='Test Show')
-        self.season = Season.objects.create(show=self.show, number=1)
 
-    def test_requires_show_or_season(self):
-        kf = KnowledgeFile(original_filename='a.txt', file_path='a.txt', content_text='')
-        with self.assertRaises(ValidationError):
-            kf.clean()
+    def test_show_required(self):
+        with self.assertRaises(Exception):
+            KnowledgeFile.objects.create(
+                original_filename='a.txt', file_path='a.txt', content_text='',
+            )
 
-    def test_cannot_have_both_show_and_season(self):
-        kf = KnowledgeFile(
-            show=self.show, season=self.season,
-            original_filename='a.txt', file_path='a.txt', content_text='',
-        )
-        with self.assertRaises(ValidationError):
-            kf.clean()
-
-    def test_valid_with_show_only(self):
-        kf = KnowledgeFile(
+    def test_valid_with_show(self):
+        kf = KnowledgeFile.objects.create(
             show=self.show, original_filename='a.txt', file_path='a.txt', content_text=''
         )
-        kf.clean()  # must not raise
-
-    def test_valid_with_season_only(self):
-        kf = KnowledgeFile(
-            season=self.season, original_filename='a.txt', file_path='a.txt', content_text=''
-        )
-        kf.clean()  # must not raise
+        self.assertEqual(kf.show, self.show)
 
     def test_str_returns_filename(self):
         kf = KnowledgeFile.objects.create(
@@ -60,22 +44,22 @@ class KnowledgeFileValidationTest(TestCase):
         )
         self.assertEqual(str(kf), 'notes.txt')
 
+    def test_valid_with_nested_show_as_season(self):
+        season = Show.objects.create(organization=self.show.organization, parent=self.show, name='Season 1')
+        kf = KnowledgeFile.objects.create(
+            show=season, original_filename='a.txt', file_path='a.txt', content_text=''
+        )
+        self.assertEqual(kf.show, season)
 
-class QuestionValidationTest(TestCase):
+
+class QuestionModelTest(TestCase):
     def setUp(self):
         org = Organization.objects.create(name='Test Org', slug='test-org')
         self.show = Show.objects.create(organization=org, name='Test Show')
-        self.season = Season.objects.create(show=self.show, number=1)
 
-    def test_requires_show_or_season(self):
-        q = Question(text='Why?')
-        with self.assertRaises(ValidationError):
-            q.clean()
-
-    def test_cannot_have_both_show_and_season(self):
-        q = Question(show=self.show, season=self.season, text='Why?')
-        with self.assertRaises(ValidationError):
-            q.clean()
+    def test_show_required(self):
+        with self.assertRaises(Exception):
+            Question.objects.create(text='Why?')
 
     def test_is_active_default(self):
         q = Question.objects.create(show=self.show, text='Who is the main character?')
@@ -117,7 +101,7 @@ class GetKnowledgeForEpisodeTest(TestCase):
             content_text='show-level background'
         )
         KnowledgeFile.objects.create(
-            season=self.season, original_filename='season.txt', file_path='season.txt',
+            show=self.season, original_filename='season.txt', file_path='season.txt',
             content_text='season-level background'
         )
 
@@ -131,7 +115,7 @@ class GetKnowledgeForEpisodeTest(TestCase):
         texts = get_knowledge_for_episode(self.episode)
         self.assertTrue(any('My Show' in t for t in texts))
 
-    def test_episode_without_seasons_returns_only_show_knowledge(self):
+    def test_episode_without_cross_listing_returns_only_primary_show_knowledge(self):
         org = Organization.objects.create(name='Org2', slug='org2')
         show2 = Show.objects.create(organization=org, name='Show2')
         ep2 = Episode.objects.create(primary_show=show2, episode_number='1', title='Ep')
@@ -148,7 +132,7 @@ class GetQuestionsForEpisodeTest(TestCase):
     def setUp(self):
         _, self.show, self.season, self.episode = make_hierarchy()
         Question.objects.create(show=self.show, text='What is the theme?', is_active=True)
-        Question.objects.create(season=self.season, text='Who appears in this season?', is_active=True)
+        Question.objects.create(show=self.season, text='Who appears in this season?', is_active=True)
         Question.objects.create(show=self.show, text='Inactive question', is_active=False)
 
     def test_returns_active_questions(self):

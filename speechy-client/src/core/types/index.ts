@@ -33,21 +33,24 @@ export interface Show {
   description: string;
   organization: string;
   organization_name: string;
-  season_count: number;
+  parent: string | null;
+  root_id: string;
+  is_active: boolean;
+  direct_episode_count: number;
+  direct_children_count: number;
   episode_count: number;
   created_at: string;
   updated_at: string;
 }
 
-export interface Season {
-  id: string;
-  show: string;
-  show_name: string;
-  number: number;
-  title: string;
-  episode_count: number;
-  created_at: string;
+export interface ShowDetail extends Show {
+  children: Show[];
 }
+
+// A "season" is just a Show whose `parent` is set — there is no separate
+// Season model. This alias exists only so season-scoped call sites can keep
+// reading like domain code.
+export type Season = Show;
 
 export interface Character {
   id: string;
@@ -70,10 +73,10 @@ export interface Episode {
   has_translation_he: boolean;
   has_summary?: boolean;
   brief_summary?: string;
-  season_memberships: Array<{
-    season: string;
-    season_number: number;
-    show_name: string;
+  show_memberships: Array<{
+    show: string;
+    name: string;
+    parent_name: string | null;
     episode_order: number | null;
   }>;
   created_at: string;
@@ -116,8 +119,7 @@ export interface EpisodeSummary {
 
 export interface Question {
   id: string;
-  show: string | null;
-  season: string | null;
+  show: string;
   text: string;
   order_index: number;
   is_active: boolean;
@@ -134,8 +136,7 @@ export interface ContextualSummary {
 
 export interface KnowledgeFile {
   id: string;
-  show: string | null;
-  season: string | null;
+  show: string;
   original_filename: string;
   file_path: string;
   content_text: string;

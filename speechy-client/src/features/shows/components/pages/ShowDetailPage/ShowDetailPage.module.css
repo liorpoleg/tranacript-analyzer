@@ -53,6 +53,20 @@
   padding: 48px 0;
 }
 
+.episodesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 32px;
+  margin-bottom: 16px;
+}
+
+.actionButton {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+
 .divider {
   margin-top: 24px;
   margin-bottom: 24px;

@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
-from apps.shows.models import Show, Season
+from apps.shows.models import Show
 from apps.users.models import User
 
 
@@ -33,8 +33,12 @@ class TranscriptLanguage(models.TextChoices):
 
 class Episode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # The top-level show this episode is filed under (for display) — always a root Show
+    # (no parent), regardless of which node in the tree it was actually uploaded to.
     primary_show = models.ForeignKey(Show, on_delete=models.CASCADE, related_name='episodes')
-    seasons = models.ManyToManyField(Season, through='EpisodeSeason', related_name='episodes')
+    # Cross-listing into any node(s) in the tree (a show, or any nested "season"). Distinct
+    # related_name from `primary_show`'s since both now target the same Show model.
+    shows = models.ManyToManyField(Show, through='EpisodeShow', related_name='cross_listed_episodes')
     characters = models.ManyToManyField('Character', related_name='episodes', blank=True)
     episode_number = models.CharField(max_length=20, db_index=True)
     title = models.CharField(max_length=500)
@@ -50,14 +54,14 @@ class Episode(models.Model):
         return f'{self.primary_show.name} — {self.episode_number}: {self.title}'
 
 
-class EpisodeSeason(models.Model):
+class EpisodeShow(models.Model):
     episode = models.ForeignKey(Episode, on_delete=models.CASCADE)
-    season = models.ForeignKey(Season, on_delete=models.CASCADE)
+    show = models.ForeignKey(Show, on_delete=models.CASCADE)
     episode_order = models.PositiveIntegerField(null=True, blank=True)
 
     class Meta:
-        unique_together = ['episode', 'season']
-        ordering = ['season', 'episode_order']
+        unique_together = ['episode', 'show']
+        ordering = ['show', 'episode_order']
 
 
 class Transcript(models.Model):

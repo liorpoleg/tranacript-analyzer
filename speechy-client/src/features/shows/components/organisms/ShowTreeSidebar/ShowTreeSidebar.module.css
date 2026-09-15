@@ -1,0 +1,49 @@
+.root {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 20px 10px;
+  background: var(--color-bg-sidebar);
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 10px;
+}
+
+.headerLabel {
+  color: var(--color-text-secondary);
+  letter-spacing: 0.08em;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.addButton:hover {
+  background: var(--color-primary-dark);
+}
+
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.loading,
+.empty {
+  padding: 16px 8px;
+  text-align: center;
+}

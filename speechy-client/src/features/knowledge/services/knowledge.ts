@@ -3,46 +3,30 @@ import client from '@/core/services/client';
 import { API } from '@/core/constants/api';
 import type { KnowledgeFile } from '@/core/types';
 
-interface UseUploadKnowledgeParams {
-  showId?: string;
-  seasonId?: string;
-}
-
+// A "season" is just a Show, so knowledge is always fetched/attached by a
+// single show id, whether that id is a root show or a nested node.
 export function useShowKnowledge(showId: string | undefined) {
   return useQuery<KnowledgeFile[], Error>({
-    queryKey: ['knowledge', 'show', showId],
+    queryKey: ['knowledge', showId],
     queryFn: () =>
       client.get(API.SHOW_KNOWLEDGE(showId as string)).then((r) => r.data.data),
     enabled: !!showId,
   });
 }
 
-export function useSeasonKnowledge(seasonId: string | undefined) {
-  return useQuery<KnowledgeFile[], Error>({
-    queryKey: ['knowledge', 'season', seasonId],
-    queryFn: () =>
-      client.get(API.SEASON_KNOWLEDGE(seasonId as string)).then((r) => r.data.data),
-    enabled: !!seasonId,
-  });
-}
-
-export function useUploadKnowledge({ showId, seasonId }: UseUploadKnowledgeParams) {
+export function useUploadKnowledge(showId: string | undefined) {
   const qc = useQueryClient();
   return useMutation<KnowledgeFile, Error, File>({
     mutationFn: (file: File) => {
       const form = new FormData();
       form.append('file', file);
-      const url = showId
-        ? API.SHOW_KNOWLEDGE(showId)
-        : API.SEASON_KNOWLEDGE(seasonId as string);
       return client
-        .post(url, form, { headers: { 'Content-Type': 'multipart/form-data' } })
+        .post(API.SHOW_KNOWLEDGE(showId as string), form, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
         .then((r) => r.data.data);
     },
-    onSuccess: () => {
-      if (showId) qc.invalidateQueries({ queryKey: ['knowledge', 'show', showId] });
-      if (seasonId) qc.invalidateQueries({ queryKey: ['knowledge', 'season', seasonId] });
-    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['knowledge', showId] }),
   });
 }
 

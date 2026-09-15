@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Episode, EpisodeSeason, Transcript, EpisodeSummary, ContextualSummary, Character
+from .models import Episode, EpisodeShow, Transcript, EpisodeSummary, ContextualSummary, Character
 
 
 class CharacterSerializer(serializers.ModelSerializer):
@@ -9,19 +9,19 @@ class CharacterSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 
-class EpisodeSeasonSerializer(serializers.ModelSerializer):
-    season_number = serializers.IntegerField(source='season.number', read_only=True)
-    show_name = serializers.CharField(source='season.show.name', read_only=True)
+class EpisodeShowSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='show.name', read_only=True)
+    parent_name = serializers.CharField(source='show.parent.name', read_only=True, default=None)
 
     class Meta:
-        model = EpisodeSeason
-        fields = ['season', 'season_number', 'show_name', 'episode_order']
+        model = EpisodeShow
+        fields = ['show', 'name', 'parent_name', 'episode_order']
 
 
 class EpisodeSerializer(serializers.ModelSerializer):
     primary_show_name = serializers.CharField(source='primary_show.name', read_only=True)
-    season_memberships = EpisodeSeasonSerializer(
-        source='episodeseason_set', many=True, read_only=True
+    show_memberships = EpisodeShowSerializer(
+        source='episodeshow_set', many=True, read_only=True
     )
     characters = CharacterSerializer(many=True, read_only=True)
     has_origin_transcript = serializers.SerializerMethodField()
@@ -35,7 +35,7 @@ class EpisodeSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'primary_show', 'primary_show_name', 'episode_number', 'title',
             'air_date', 'original_language', 'characters',
-            'season_memberships', 'has_origin_transcript',
+            'show_memberships', 'has_origin_transcript',
             'has_translation_he', 'has_translation_en', 'has_summary', 'brief_summary',
             'created_at', 'updated_at',
         ]

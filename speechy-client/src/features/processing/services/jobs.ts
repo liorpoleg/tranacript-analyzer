@@ -19,12 +19,14 @@ export function useJob(id: string | undefined) {
   });
 }
 
-export function useSeasonJobs(seasonId: string | undefined) {
+// Jobs for episodes belonging to this node — a "season" is just a Show, and
+// this is recursive server-side (includes descendant nodes' episodes too).
+export function useShowJobs(showId: string | undefined) {
   return useQuery<ProcessingJob[], Error>({
-    queryKey: ['jobs', { seasonId }],
+    queryKey: ['jobs', { showId }],
     queryFn: () =>
-      client.get(API.JOBS, { params: { season: seasonId } }).then((r) => r.data.data),
-    enabled: !!seasonId,
+      client.get(API.JOBS, { params: { show: showId } }).then((r) => r.data.data),
+    enabled: !!showId,
     refetchInterval: (data) => {
       if (!data) return false;
       return data.some((j) => !TERMINAL_STATUSES.has(j.status)) ? 2000 : false;
