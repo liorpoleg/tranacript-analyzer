@@ -29,15 +29,16 @@
   }
 }
 
-/* Both side columns share the same min-width on purpose: with plain `1fr`
-   tracks, CSS Grid satisfies each side's own content-based minimum first and
-   only *then* splits remaining space — since the left side (logo + 3 nav
-   links) naturally needs much more room than the right (gear + avatar),
-   that left-over split is wildly unequal and the search bar ends up well
-   off true-center. Giving both an identical explicit floor (comfortably
-   above the left side's actual content width) makes the two 1fr tracks
-   resolve to the same size, which is what keeps the search bar centered on
-   the whole toolbar rather than just centered in whatever space is left. */
+/* No min-width: 0 here on purpose — that would tell the grid these columns
+   are free to shrink below their actual content width, which lets them
+   silently overflow into the search column instead of the grid reserving
+   their real rendered width as each column's minimum. Forcing both sides to
+   an identical floor would center the search bar more exactly, but on
+   anything narrower than a very wide monitor it starves the middle column
+   down to an unusably thin sliver (or worse, once that column also needs to
+   fit its own children, overflows them into the next column) — so the
+   search bar is close to centered, biased slightly toward the lighter
+   (right) side, rather than mathematically perfect. */
 .leftGroup {
   display: flex;
   align-items: center;
@@ -49,19 +50,6 @@
   align-items: center;
   justify-self: end;
   margin-left: auto;
-}
-
-/* Forcing both sides to the same floor only pays off once there's enough
-   room left over for the search bar to still be a usable width — below that,
-   it just starves the middle column (e.g. a 14px-wide search box). On
-   narrower desktop windows we accept the search drifting slightly off true
-   center in exchange for staying a sane width; see .searchInput below for
-   the matching width tiers. */
-@media (min-width: 1400px) {
-  .leftGroup,
-  .rightGroup {
-    min-width: 480px;
-  }
 }
 
 @media (min-width: 900px) {
@@ -207,11 +195,20 @@
   margin-left: 8px;
   font-size: 0.875rem;
   flex: 1;
-  /* The grid's middle column is `auto` (sized to this content) so it can
-     still shrink gracefully on narrower screens instead of overlapping the
-     nav links or user menu — this sets the *preferred* width wider, it
-     isn't a hard floor that forces an overlap. */
-  min-width: 380px;
+}
+
+/* The grid's middle column is `auto` (sized to this content), so raising the
+   input's min-width is what makes the whole search bar wider — but it's a
+   hard floor the flex row won't shrink below, and combined with the nav
+   links + user menu's own real minimums, demanding too much here overflows
+   the search bar's own children (icon/divider/show-select) past its box
+   once the viewport can't fit everyone's minimum at once. Below ~1280px
+   there isn't room for a wider bar without that happening, so it only
+   widens on screens that can actually fit it. */
+@media (min-width: 1280px) {
+  .searchInput {
+    min-width: 380px;
+  }
 }
 
 .searchDivider {
