@@ -92,6 +92,27 @@ class EpisodeViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='contextual')
     def contextual(self, request, pk=None):
         episode = self.get_object()
+        # Checked synchronously so the user gets an immediate, specific error
+        # instead of a job that silently reaches RUNNING and then fails.
+        # A missing knowledge file is NOT one of these checks — it's optional,
+        # the task falls back to a questions-only summary.
+        if not episode.transcripts.exists():
+            return Response(
+                {'data': None, 'error': {
+                    'code': 400,
+                    'message': 'Upload or translate the episode before generating a contextual summary.',
+                }},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        from apps.knowledge.services import get_questions_for_episode
+        if not get_questions_for_episode(episode):
+            return Response(
+                {'data': None, 'error': {
+                    'code': 400,
+                    'message': "No active research questions found for this episode's show/season. Add a question first.",
+                }},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         job = enqueue_job(episode, 'contextual_summary', request.user)
         from apps.processing.serializers import ProcessingJobSerializer
         return Response({'data': ProcessingJobSerializer(job).data, 'error': None},

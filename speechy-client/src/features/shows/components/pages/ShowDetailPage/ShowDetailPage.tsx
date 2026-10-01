@@ -26,7 +26,7 @@ export default function ShowDetailPage(): JSX.Element {
   const navigate = useNavigate();
   const toast = useToast();
   const { data: show, isLoading } = useShow(id);
-  const { data: seasons = [] } = useShowChildren(id);
+  const { data: seasons = [], isLoading: seasonsLoading } = useShowChildren(id);
   const { data: episodes = [], isLoading: episodesLoading } = useShowEpisodes(id);
   const { data: questions = [], isLoading: questionsLoading } = useShowQuestions(id);
   const { data: knowledge = [], isLoading: knowledgeLoading } = useShowKnowledge(id);
@@ -90,8 +90,10 @@ export default function ShowDetailPage(): JSX.Element {
         </Box>
       </Box>
 
-      {seasons.length === 0 && (
-        <Typography className={styles.emptySeasons}>No seasons yet. Add a season to get started.</Typography>
+      {!seasonsLoading && !episodesLoading && seasons.length === 0 && episodes.length === 0 && (
+        <Typography className={styles.emptySeasons}>
+          Nothing here yet. Add a season or upload episodes to get started.
+        </Typography>
       )}
 
       {seasons.map((season: Show) => (

@@ -13,6 +13,21 @@ def create_show(user, data: dict) -> Show:
     return Show.objects.create(**data)
 
 
+def search_shows_by_name(user, query: str) -> list:
+    """Shows anywhere in the user's organization whose name matches the query,
+    regardless of depth in the tree — backs the sidebar's backend-driven search
+    (kept server-side, rather than filtering an already-fetched tree client-side,
+    so it composes with future pagination/infinite-scroll)."""
+    query = (query or '').strip()
+    if not query:
+        return []
+    return list(
+        Show.objects.filter(organization=user.organization, name__icontains=query)
+        .select_related('organization', 'parent')
+        .order_by('name')[:SEARCH_RESULT_LIMIT]
+    )
+
+
 def get_descendant_ids(show_id) -> list:
     """All descendant show ids under show_id (excluding show_id itself), any depth."""
     sql = """

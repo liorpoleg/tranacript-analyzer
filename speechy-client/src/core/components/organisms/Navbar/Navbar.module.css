@@ -5,7 +5,8 @@
 }
 
 .toolbar {
-  position: relative;
+  display: flex;
+  align-items: center;
   gap: 8px;
   height: 60px;
   min-height: 60px !important;
@@ -15,8 +16,57 @@
 
 @media (min-width: 900px) {
   .toolbar {
+    display: grid;
+    /* Equal 1fr side columns (not auto-sized to their content) are what
+       keeps the middle column — the search bar — on the true toolbar
+       center, regardless of the left tabs/logo and right gear/avatar
+       being different widths. An auto/1fr/auto split would instead center
+       the search within whatever space happens to be left over, which
+       drifts off-center whenever the two sides aren't the same width. */
+    grid-template-columns: 1fr auto 1fr;
     padding-left: 32px;
     padding-right: 32px;
+  }
+}
+
+/* Both side columns share the same min-width on purpose: with plain `1fr`
+   tracks, CSS Grid satisfies each side's own content-based minimum first and
+   only *then* splits remaining space — since the left side (logo + 3 nav
+   links) naturally needs much more room than the right (gear + avatar),
+   that left-over split is wildly unequal and the search bar ends up well
+   off true-center. Giving both an identical explicit floor (comfortably
+   above the left side's actual content width) makes the two 1fr tracks
+   resolve to the same size, which is what keeps the search bar centered on
+   the whole toolbar rather than just centered in whatever space is left. */
+.leftGroup {
+  display: flex;
+  align-items: center;
+  justify-self: start;
+}
+
+.rightGroup {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  margin-left: auto;
+}
+
+/* Forcing both sides to the same floor only pays off once there's enough
+   room left over for the search bar to still be a usable width — below that,
+   it just starves the middle column (e.g. a 14px-wide search box). On
+   narrower desktop windows we accept the search drifting slightly off true
+   center in exchange for staying a sane width; see .searchInput below for
+   the matching width tiers. */
+@media (min-width: 1400px) {
+  .leftGroup,
+  .rightGroup {
+    min-width: 480px;
+  }
+}
+
+@media (min-width: 900px) {
+  .rightGroup {
+    margin-left: 0;
   }
 }
 
@@ -30,9 +80,29 @@
 }
 
 .logoImg {
-  height: 36px;
-  width: auto;
+  height: 34px;
+  width: 34px;
+  border-radius: 10px;
   object-fit: contain;
+}
+
+.wordmark {
+  font-size: 1.3rem;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+@media (max-width: 599px) {
+  .wordmark {
+    display: none;
+  }
+}
+
+.mobileMenuLabel {
+  display: block;
+  padding: 10px 16px 4px;
+  color: var(--color-text-disabled);
+  letter-spacing: 0.08em;
 }
 
 .mobileMenuButton {
@@ -102,18 +172,14 @@
 
 .searchWrapper {
   display: none;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  max-width: 520px;
+  min-width: 0;
   padding: 0 16px;
 }
 
 @media (min-width: 900px) {
   .searchWrapper {
-    display: block;
+    display: flex;
+    justify-content: center;
   }
 }
 
@@ -134,13 +200,18 @@
 
 .searchBar:focus-within {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.12);
+  box-shadow: 0 0 0 3px rgba(47, 98, 119, 0.12);
 }
 
 .searchInput {
   margin-left: 8px;
   font-size: 0.875rem;
   flex: 1;
+  /* The grid's middle column is `auto` (sized to this content) so it can
+     still shrink gracefully on narrower screens instead of overlapping the
+     nav links or user menu — this sets the *preferred* width wider, it
+     isn't a hard floor that forces an overlap. */
+  min-width: 380px;
 }
 
 .searchDivider {
@@ -201,7 +272,7 @@
 }
 
 .resultRowHighlighted {
-  background: #eff6ff;
+  background: var(--color-bg-sidebar);
 }
 
 .resultSnippet {
@@ -209,8 +280,19 @@
   margin-top: 2px;
 }
 
-.spacer {
-  flex: 1;
+.settingsButton {
+  color: var(--color-text-secondary);
+  margin-right: 4px;
+}
+
+.settingsButton:hover {
+  background: var(--color-bg-sidebar);
+  color: var(--color-primary);
+}
+
+.settingsButtonActive {
+  color: var(--color-primary);
+  background: var(--color-bg-sidebar);
 }
 
 .userMenuTrigger {

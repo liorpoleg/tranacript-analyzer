@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import axios from 'axios';
 import { Box, Card, CardContent, Typography, Alert, CircularProgress, Stack } from '@mui/material';
 import { Brain, Warning } from '@phosphor-icons/react';
 import AppButton from '@/core/components/atoms/AppButton/AppButton';
@@ -44,8 +45,9 @@ export default function ContextualTab({ episode }: ContextualTabProps): JSX.Elem
       const job = await runContextual.mutateAsync();
       setPendingJobId(job.id);
       toast.show('Contextual summary started.', 'info');
-    } catch {
-      toast.show('Failed to start contextual summary.', 'error');
+    } catch (err) {
+      const message = axios.isAxiosError(err) ? err.response?.data?.error?.message : undefined;
+      toast.show(message || 'Failed to start contextual summary.', 'error');
     }
   };
 

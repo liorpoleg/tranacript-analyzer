@@ -1,29 +1,37 @@
 import { GlobalStyles as MuiGlobalStyles } from '@mui/material';
+import baloo2_700 from '@/assets/fonts/Baloo2-700.woff2';
+import baloo2_800 from '@/assets/fonts/Baloo2-800.woff2';
+import jakarta_400 from '@/assets/fonts/PlusJakartaSans-400.woff2';
+import jakarta_500 from '@/assets/fonts/PlusJakartaSans-500.woff2';
+import jakarta_600 from '@/assets/fonts/PlusJakartaSans-600.woff2';
+import jakarta_700 from '@/assets/fonts/PlusJakartaSans-700.woff2';
 
-/*
-  FONTS: Download "Baloo 2" and "Plus Jakarta Sans" as woff2 files and place in:
-    src/assets/fonts/BaloO2-*.woff2
-    src/assets/fonts/PlusJakartaSans-*.woff2
-  Then uncomment the @font-face blocks below. No CDN links.
-*/
 // Mirrors src/theme/index.ts palette/shape tokens as CSS custom properties so
 // CSS Modules (which can't read the JS theme object) can stay in sync with it.
 // Keep these two files in sync by hand — there is no single source of truth.
 const styles = {
-  '@font-face': [],
+  '@font-face': [
+    { fontFamily: 'Baloo 2', fontStyle: 'normal', fontWeight: 700, fontDisplay: 'swap', src: `url(${baloo2_700}) format('woff2')` },
+    { fontFamily: 'Baloo 2', fontStyle: 'normal', fontWeight: 800, fontDisplay: 'swap', src: `url(${baloo2_800}) format('woff2')` },
+    { fontFamily: 'Plus Jakarta Sans', fontStyle: 'normal', fontWeight: 400, fontDisplay: 'swap', src: `url(${jakarta_400}) format('woff2')` },
+    { fontFamily: 'Plus Jakarta Sans', fontStyle: 'normal', fontWeight: 500, fontDisplay: 'swap', src: `url(${jakarta_500}) format('woff2')` },
+    { fontFamily: 'Plus Jakarta Sans', fontStyle: 'normal', fontWeight: 600, fontDisplay: 'swap', src: `url(${jakarta_600}) format('woff2')` },
+    { fontFamily: 'Plus Jakarta Sans', fontStyle: 'normal', fontWeight: 700, fontDisplay: 'swap', src: `url(${jakarta_700}) format('woff2')` },
+  ],
   ':root': {
-    '--color-primary': '#2196f3',
-    '--color-primary-dark': '#1565c0',
-    '--color-primary-light': '#64b5f6',
-    '--color-secondary': '#0288d1',
-    '--color-bg-default': '#f4f6fb',
+    '--color-primary': '#2F6277',
+    '--color-primary-dark': '#234A59',
+    '--color-primary-light': '#4C8599',
+    '--color-secondary': '#91E9EB',
+    '--color-bg-default': '#E0F7F9',
     '--color-bg-paper': '#ffffff',
-    '--color-bg-sidebar': '#eaf3fd',
-    '--color-text-primary': '#191c24',
-    '--color-text-secondary': '#5f6675',
-    '--color-text-disabled': '#9aa1ae',
-    '--color-divider': '#e3e6ec',
-    '--color-success': '#22c55e',
+    '--color-bg-sidebar': '#EAF9FA',
+    '--color-text-primary': '#333333',
+    '--color-text-secondary': '#5B6B70',
+    '--color-text-disabled': '#9BB0B4',
+    '--color-divider': '#CFEEF0',
+    '--color-success': '#4E9B6B',
+    '--color-success-soft': '#A9DBB8',
     '--color-warning': '#f59e0b',
     '--color-error': '#ef4444',
     '--radius-base': '12px',

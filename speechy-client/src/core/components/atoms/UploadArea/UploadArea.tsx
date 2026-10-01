@@ -25,7 +25,7 @@ export default function UploadArea({ onDrop, accept, label = 'Drop file here', h
       className={`${styles.dropzone} ${isDragActive ? styles.dropzoneActive : ''}`.trim()}
     >
       <input {...getInputProps()} />
-      <UploadSimple size={36} color="#2196f3" />
+      <UploadSimple size={36} color="#2F6277" />
       <Typography fontWeight={700} mt={1}>
         {fileName ?? label}
       </Typography>

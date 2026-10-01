@@ -6,7 +6,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .models import Show
 from .serializers import ShowSerializer, ShowDetailSerializer
 from .services import (
-    get_shows_for_user, search_show, get_root_counts_for_user,
+    get_shows_for_user, search_show, search_shows_by_name, get_root_counts_for_user,
     get_show_tree_with_counts, truncate_tree_depth, get_recursive_episode_ids,
 )
 from apps.episodes.models import Episode
@@ -20,6 +20,10 @@ class ShowViewSet(viewsets.ModelViewSet):
         return get_shows_for_user(self.request.user)
 
     def list(self, request, *args, **kwargs):
+        search = request.query_params.get('search')
+        if search:
+            results = search_shows_by_name(request.user, search)
+            return Response({'data': ShowSerializer(results, many=True).data, 'error': None})
         parent_id = request.query_params.get('parent')
         qs = self.get_queryset()
         if parent_id:

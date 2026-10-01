@@ -1,0 +1,21 @@
+.content {
+  text-align: center;
+}
+
+.mascot {
+  width: 200px;
+  height: auto;
+  margin: 0 auto 20px;
+  display: block;
+}
+
+.subtitle {
+  margin-bottom: 28px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}

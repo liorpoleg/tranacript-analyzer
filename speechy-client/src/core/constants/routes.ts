@@ -12,6 +12,8 @@ export const ROUTES = {
   SEASON_JOBS: '/seasons/:id/jobs',
   SEASON_CHAT: '/seasons/:id/chat',
   EPISODE_DETAIL: '/episodes/:id',
+  CHAT: '/chat',
+  JOBS: '/jobs',
   JOB_DETAIL: '/jobs/:id',
   USERS: '/users',
   ORGANIZATIONS: '/organizations',

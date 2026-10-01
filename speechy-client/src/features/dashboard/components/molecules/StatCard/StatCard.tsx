@@ -8,7 +8,7 @@ interface StatCardProps {
   accent?: string;
 }
 
-export default function StatCard({ label, value, icon, accent = '#6366F1' }: StatCardProps): JSX.Element {
+export default function StatCard({ label, value, icon, accent = '#2F6277' }: StatCardProps): JSX.Element {
   const bgAlpha = `${accent}18`;
 
   return (

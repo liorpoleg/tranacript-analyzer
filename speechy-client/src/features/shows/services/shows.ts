@@ -93,6 +93,20 @@ export function useCreateChildShow(showId: string | undefined) {
   });
 }
 
+// Backend-driven name search across the whole org's show tree (any depth) —
+// backs the sidebar search box. Deliberately not a client-side filter of the
+// already-fetched tree, so it composes with future pagination/infinite-scroll.
+export function useShowNameSearch(query: string) {
+  const trimmed = query.trim();
+  return useQuery<Show[], Error>({
+    queryKey: ['show-name-search', trimmed],
+    queryFn: () =>
+      client.get(API.SHOWS, { params: { search: trimmed } }).then((r) => r.data.data),
+    enabled: trimmed.length > 0,
+    staleTime: 10_000,
+  });
+}
+
 export function useShowSearch(showId: string | undefined, query: string) {
   const trimmed = query.trim();
   return useQuery<SearchResult[], Error>({

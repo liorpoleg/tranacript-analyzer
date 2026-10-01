@@ -1,5 +1,13 @@
-.statsGrid {
-  margin-bottom: 28px;
+.statsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.statsRow > * {
+  flex: 1 1 200px;
+  max-width: 260px;
 }
 
 .cardContent {
@@ -10,11 +18,39 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   padding: 16px 20px;
+  flex-wrap: wrap;
+}
+
+.cardHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .cardTitle {
   font-size: 0.95rem;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  background: var(--color-bg-default);
+  transition: border-color 0.15s;
+}
+
+.searchBar:focus-within {
+  border-color: var(--color-primary-light);
+}
+
+.searchInput {
+  font-size: 0.8rem;
+  width: 160px;
 }
 
 .cardDivider {
@@ -32,18 +68,4 @@
 
 .emptyAction {
   margin-top: 16px;
-}
-
-.fullHeightCard {
-  height: 100%;
-}
-
-.smallCenteredState {
-  padding: 32px;
-  text-align: center;
-}
-
-.noActivity {
-  text-align: center;
-  padding: 32px 0;
 }
