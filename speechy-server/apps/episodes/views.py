@@ -1,5 +1,7 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
@@ -10,6 +12,9 @@ from .serializers import (
 )
 from .services import get_episodes_for_user, parse_episode_excel, add_episode_to_show
 from apps.processing.services import enqueue_job
+from apps.shows.permissions import (
+    IsEpisodeViewerOrAbove, IsEpisodeEditorOrAbove, get_effective_role,
+)
 
 
 class EpisodeViewSet(viewsets.ModelViewSet):
@@ -19,31 +24,55 @@ class EpisodeViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return get_episodes_for_user(self.request.user)
 
+    def get_permissions(self):
+        if self.action in (
+            'list', 'retrieve', 'transcripts', 'translations', 'summary', 'contextual_summaries', 'contextual',
+        ):
+            classes = [IsAuthenticated, IsEpisodeViewerOrAbove]
+        elif self.action in ('partial_update', 'destroy', 'upload', 'translate', 'summarize'):
+            classes = [IsAuthenticated, IsEpisodeEditorOrAbove]
+        else:
+            classes = [IsAuthenticated]
+        return [c() for c in classes]
+
     def list(self, request, *args, **kwargs):
         show_id = request.query_params.get('show')
         qs = self.get_queryset()
         if show_id:
             qs = qs.filter(primary_show_id=show_id)
-        return Response({'data': EpisodeSerializer(qs, many=True).data, 'error': None})
+        return Response({
+            'data': EpisodeSerializer(qs, many=True, context={'request': request}).data, 'error': None,
+        })
 
     def retrieve(self, request, *args, **kwargs):
-        return Response({'data': EpisodeSerializer(self.get_object()).data, 'error': None})
+        return Response({
+            'data': EpisodeSerializer(self.get_object(), context={'request': request}).data, 'error': None,
+        })
 
     def create(self, request, *args, **kwargs):
+        show_id = request.data.get('show')
+        if show_id:
+            from apps.shows.models import Show
+            show = get_object_or_404(Show, pk=show_id)
+            role = get_effective_role(request.user, show)
+            if role not in ('editor', 'owner'):
+                return Response(
+                    {'data': None, 'error': {'code': 403, 'message': 'You do not have editor access to this show.'}},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
         s = EpisodeSerializer(data=request.data)
         s.is_valid(raise_exception=True)
         episode = s.save()
-        show_id = request.data.get('show')
         if show_id:
             add_episode_to_show(episode, show_id)
-        return Response({'data': EpisodeSerializer(episode).data, 'error': None},
+        return Response({'data': EpisodeSerializer(episode, context={'request': request}).data, 'error': None},
                         status=status.HTTP_201_CREATED)
 
     def partial_update(self, request, *args, **kwargs):
         s = EpisodeSerializer(self.get_object(), data=request.data, partial=True)
         s.is_valid(raise_exception=True)
         episode = s.save()
-        return Response({'data': EpisodeSerializer(episode).data, 'error': None})
+        return Response({'data': EpisodeSerializer(episode, context={'request': request}).data, 'error': None})
 
     def destroy(self, request, *args, **kwargs):
         self.get_object().delete()

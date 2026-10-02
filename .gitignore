@@ -18,6 +18,9 @@ credentials.json
 *.log
 *.sqlite
 
+# Uploaded/generated runtime files (knowledge file uploads, etc.)
+speechy-server/media/
+
 # Package manager dependencies
 node_modules/
 jspm_packages/

@@ -29,6 +29,7 @@ class EpisodeSerializer(serializers.ModelSerializer):
     has_translation_en = serializers.SerializerMethodField()
     has_summary = serializers.SerializerMethodField()
     brief_summary = serializers.SerializerMethodField()
+    my_role = serializers.SerializerMethodField()
 
     class Meta:
         model = Episode
@@ -37,9 +38,16 @@ class EpisodeSerializer(serializers.ModelSerializer):
             'air_date', 'original_language', 'characters',
             'show_memberships', 'has_origin_transcript',
             'has_translation_he', 'has_translation_en', 'has_summary', 'brief_summary',
-            'created_at', 'updated_at',
+            'my_role', 'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_my_role(self, obj):
+        request = self.context.get('request')
+        if request is None:
+            return None
+        from apps.shows.permissions import get_episode_effective_role
+        return get_episode_effective_role(request.user, obj)
 
     def get_has_origin_transcript(self, obj):
         return obj.transcripts.filter(language='origin').exists()
