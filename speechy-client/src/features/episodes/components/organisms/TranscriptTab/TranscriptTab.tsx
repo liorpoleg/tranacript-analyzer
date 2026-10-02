@@ -41,6 +41,7 @@ export default function TranscriptTab({ episode, onTabChange }: TranscriptTabPro
   });
 
   const originTranscript = transcripts.find((t) => t.language === 'origin');
+  const canEdit = episode.my_role === 'owner' || episode.my_role === 'editor';
 
   const handleDrop = async ([file]: File[]): Promise<void> => {
     if (!file) return;
@@ -71,9 +72,12 @@ export default function TranscriptTab({ episode, onTabChange }: TranscriptTabPro
             }}
             label={episode.has_origin_transcript ? 'Replace transcript (drop new Excel)' : 'Drop your Excel here'}
             hint=".xlsx · one row per dialogue line"
+            disabled={!canEdit}
           />
           <Typography variant="caption" color="text.secondary" display="block" className={styles.uploadHint}>
-            Translation and episode summary start automatically after upload.
+            {canEdit
+              ? 'Translation and episode summary start automatically after upload.'
+              : 'Viewer access — ask an owner or editor to upload the transcript.'}
           </Typography>
         </CardContent>
       </Card>

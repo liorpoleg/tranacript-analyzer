@@ -21,7 +21,7 @@
   top: 60px;
   width: 250px;
   flex-shrink: 0;
-  height: calc(100vh - 60px);
+  height: 100%;
   border-right: 1px solid var(--color-divider);
   transition: width 150ms ease;
   overflow: hidden;
@@ -29,6 +29,7 @@
 
 .sidebarDesktopCollapsed {
   width: 44px;
+  height: 100%;
   background: var(--color-bg-sidebar);
 }
 

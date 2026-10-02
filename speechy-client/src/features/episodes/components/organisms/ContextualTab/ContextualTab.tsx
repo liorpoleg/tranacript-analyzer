@@ -60,7 +60,7 @@ export default function ContextualTab({ episode }: ContextualTabProps): JSX.Elem
           startIcon={<Brain size={16} />}
           onClick={handleRun}
           loading={!!pendingJobId}
-          disabled={!episode.has_translation_en && !episode.has_translation_he}
+          disabled={(!episode.has_translation_en && !episode.has_translation_he) || episode.my_role === null}
         >
           {pendingJobId ? 'Generating…' : latest ? 'Re-run' : 'Generate'}
         </AppButton>

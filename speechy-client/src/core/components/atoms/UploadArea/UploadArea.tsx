@@ -8,13 +8,15 @@ interface UploadAreaProps {
   accept?: Record<string, string[]>;
   label?: string;
   hint?: string;
+  disabled?: boolean;
 }
 
-export default function UploadArea({ onDrop, accept, label = 'Drop file here', hint }: UploadAreaProps): JSX.Element {
+export default function UploadArea({ onDrop, accept, label = 'Drop file here', hint, disabled }: UploadAreaProps): JSX.Element {
   const { getRootProps, getInputProps, isDragActive, acceptedFiles } = useDropzone({
     onDrop,
     accept,
     multiple: false,
+    disabled,
   });
 
   const fileName = acceptedFiles[0]?.name;
@@ -22,7 +24,7 @@ export default function UploadArea({ onDrop, accept, label = 'Drop file here', h
   return (
     <Box
       {...getRootProps()}
-      className={`${styles.dropzone} ${isDragActive ? styles.dropzoneActive : ''}`.trim()}
+      className={`${styles.dropzone} ${isDragActive ? styles.dropzoneActive : ''} ${disabled ? styles.dropzoneDisabled : ''}`.trim()}
     >
       <input {...getInputProps()} />
       <UploadSimple size={36} color="#2F6277" />
