@@ -4,7 +4,7 @@ import { buildRoute } from '@/core/constants/routes';
 import type { Show } from '@/core/types';
 import styles from './ShowListItem.module.css';
 
-const SHOW_AVATARS = ['#2196f3', '#0288d1', '#0277bd', '#01579b', '#006db3', '#4fc3f7'];
+const SHOW_AVATARS = ['#2F6277', '#4C8599', '#5FC9CC', '#6FA8B5', '#3F7A57', '#234A59'];
 function getAvatarColor(name = ''): string {
   return SHOW_AVATARS[name.charCodeAt(0) % SHOW_AVATARS.length];
 }

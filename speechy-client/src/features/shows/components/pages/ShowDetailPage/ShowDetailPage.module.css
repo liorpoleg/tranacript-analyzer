@@ -3,11 +3,6 @@
   text-align: center;
 }
 
-.backButton {
-  margin-bottom: 16px;
-  color: var(--color-text-secondary);
-}
-
 .header {
   display: flex;
   gap: 20px;
@@ -35,13 +30,6 @@
   flex: 1;
 }
 
-.headerStats {
-  display: flex;
-  gap: 16px;
-  margin-top: 12px;
-  color: var(--color-text-secondary);
-}
-
 .headerActions {
   display: flex;
   gap: 8px;
@@ -67,16 +55,73 @@
   font-size: 0.75rem;
 }
 
-.divider {
-  margin-top: 24px;
-  margin-bottom: 24px;
-}
-
-.researchTitle {
-  font-size: 1.2rem;
-  margin-bottom: 20px;
-}
-
 .researchCardContent {
   padding: 24px;
+}
+
+.tabBar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.tab {
+  position: relative;
+  border-radius: 20px 20px 0 0;
+  padding: 6px 16px;
+  font-weight: 500;
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.tab::after {
+  content: '';
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+}
+
+.tab:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--color-text-primary);
+}
+
+.tabActive {
+  font-weight: 700;
+  background: var(--color-bg-sidebar);
+  color: var(--color-primary);
+}
+
+.tabActive:hover {
+  background: var(--color-bg-sidebar);
+  color: var(--color-primary);
+}
+
+.tabActive::after {
+  background: var(--color-primary);
+}
+
+/* Fits the page to the viewport so the window itself never needs to scroll —
+   only `.content` below does. The subtracted constants are the other fixed-height
+   chrome around this box: AppShell's navbar (60px, AppShell.module.css) and
+   PageLayout's own vertical padding (36px top + 64px bottom, PageLayout.module.css).
+   Everything else here (back button, header, tab bar) is auto-height; flexbox
+   gives whatever's left to `.content`, so this stays correct even if the header
+   wraps to two lines on a narrow viewport. */
+.page {
+  height: calc(100vh - 60px - 36px - 64px);
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
 }

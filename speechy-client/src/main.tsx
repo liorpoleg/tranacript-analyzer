@@ -6,6 +6,7 @@ import { ThemeProvider, CssBaseline, StyledEngineProvider } from '@mui/material'
 import App from './App';
 import theme from '@/core/theme';
 import GlobalStyles from '@/core/theme/GlobalStyles';
+import ErrorBoundary from '@/core/components/organisms/ErrorBoundary/ErrorBoundary';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,7 +25,9 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
           <CssBaseline />
           <GlobalStyles />
           <BrowserRouter>
-            <App />
+            <ErrorBoundary>
+              <App />
+            </ErrorBoundary>
           </BrowserRouter>
         </ThemeProvider>
       </QueryClientProvider>

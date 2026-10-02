@@ -74,24 +74,28 @@ export default function SeasonAccordion({ season, depth = 0 }: SeasonAccordionPr
           >
             Chat & Settings
           </Button>
-          <Button
-            size="small"
-            component="label"
-            startIcon={<Upload size={14} />}
-            disabled={showUpload.isLoading}
-            className={styles.actionButton}
-          >
-            {showUpload.isLoading ? 'Uploading…' : 'Upload Multiple Episodes'}
-            <input type="file" hidden accept=".xlsx,.xls" onChange={handleShowUpload} />
-          </Button>
-          <Button
-            size="small"
-            startIcon={<Plus size={14} />}
-            onClick={() => setSubSeasonModal(true)}
-            className={styles.actionButton}
-          >
-            Add Sub-season
-          </Button>
+          {(season.my_role === 'owner' || season.my_role === 'editor') && (
+            <Button
+              size="small"
+              component="label"
+              startIcon={<Upload size={14} />}
+              disabled={showUpload.isLoading}
+              className={styles.actionButton}
+            >
+              {showUpload.isLoading ? 'Uploading…' : 'Upload Multiple Episodes'}
+              <input type="file" hidden accept=".xlsx,.xls" onChange={handleShowUpload} />
+            </Button>
+          )}
+          {season.my_role === 'owner' && (
+            <Button
+              size="small"
+              startIcon={<Plus size={14} />}
+              onClick={() => setSubSeasonModal(true)}
+              className={styles.actionButton}
+            >
+              Add Sub-season
+            </Button>
+          )}
         </Box>
       </Box>
 

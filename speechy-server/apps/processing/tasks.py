@@ -247,7 +247,9 @@ def contextual_summary_task(self, job_id: str):
         ContextualSummary.objects.create(
             episode=episode,
             user=job.triggered_by,
-            questions_snapshot=questions,
+            # Stored as {text: ...} objects, not bare strings — the client's
+            # ContextualTab renders each snapshot entry's `.text`.
+            questions_snapshot=[{'text': q} for q in questions],
             summary_text=response.strip(),
         )
 

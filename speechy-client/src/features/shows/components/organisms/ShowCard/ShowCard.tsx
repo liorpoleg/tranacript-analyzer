@@ -6,12 +6,12 @@ import type { Show } from '@/core/types';
 import styles from './ShowCard.module.css';
 
 const PALETTES = [
-  { from: '#64b5f6', to: '#1565c0' },
-  { from: '#4fc3f7', to: '#0277bd' },
-  { from: '#29b6f6', to: '#01579b' },
-  { from: '#42a5f5', to: '#0d47a1' },
-  { from: '#81d4fa', to: '#006db3' },
-  { from: '#039be5', to: '#1565c0' },
+  { from: '#4C8599', to: '#234A59' },
+  { from: '#5FC9CC', to: '#2F6277' },
+  { from: '#91E9EB', to: '#2F6277' },
+  { from: '#7FBFC2', to: '#1F3F4C' },
+  { from: '#A9DBB8', to: '#3F7A57' },
+  { from: '#6FA8B5', to: '#234A59' },
 ];
 
 function getPalette(name = '') {

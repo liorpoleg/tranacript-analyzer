@@ -3,25 +3,27 @@ import { createTheme } from '@mui/material/styles';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#2196f3',
-      dark: '#1565c0',
-      light: '#64b5f6',
+      main: '#2F6277',
+      dark: '#234A59',
+      light: '#4C8599',
       contrastText: '#fff',
     },
     secondary: {
-      main: '#0288d1',
+      main: '#91E9EB',
+      dark: '#5FC9CC',
+      contrastText: '#234A59',
     },
     background: {
-      default: '#f4f6fb',
+      default: '#E0F7F9',
       paper: '#ffffff',
     },
     text: {
-      primary: '#191c24',
-      secondary: '#5f6675',
-      disabled: '#9aa1ae',
+      primary: '#333333',
+      secondary: '#5B6B70',
+      disabled: '#9BB0B4',
     },
-    divider: '#e3e6ec',
-    success: { main: '#22c55e' },
+    divider: '#CFEEF0',
+    success: { main: '#4E9B6B', light: '#A9DBB8' },
     warning: { main: '#f59e0b' },
     error: { main: '#ef4444' },
   },
@@ -62,8 +64,8 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          border: '1px solid #e3e6ec',
-          boxShadow: '0 1px 3px rgba(20,23,33,0.06)',
+          border: '1px solid #CFEEF0',
+          boxShadow: '0 1px 3px rgba(47,98,119,0.08)',
           borderRadius: 16,
         },
       },
@@ -88,8 +90,8 @@ const theme = createTheme({
             fontSize: '0.75rem',
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
-            color: '#9aa1ae',
-            background: '#eceef3',
+            color: '#5B6B70',
+            background: '#EAF9FA',
           },
         },
       },

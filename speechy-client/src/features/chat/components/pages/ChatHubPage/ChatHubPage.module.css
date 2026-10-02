@@ -1,0 +1,39 @@
+.showPickerCard {
+  margin-bottom: 20px;
+}
+
+.showPickerContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px !important;
+}
+
+.showPickerLabel {
+  flex-shrink: 0;
+}
+
+.showSelect {
+  min-width: 240px;
+}
+
+.selectorCardContent {
+  padding: 16px;
+}
+
+.selectorTitle {
+  margin-bottom: 12px;
+}
+
+.chatCardContent {
+  padding: 24px;
+  height: 420px;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 900px) {
+  .chatCardContent {
+    height: 560px;
+  }
+}

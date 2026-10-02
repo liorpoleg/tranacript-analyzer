@@ -58,7 +58,10 @@ export default function SummaryTab({ episode }: SummaryTabProps): JSX.Element {
           startIcon={<ArrowClockwise size={16} />}
           onClick={handleRun}
           loading={!!pendingJobId}
-          disabled={!episode.has_translation_en && !episode.has_translation_he}
+          disabled={
+            (!episode.has_translation_en && !episode.has_translation_he)
+            || !(episode.my_role === 'owner' || episode.my_role === 'editor')
+          }
         >
           {pendingJobId ? 'Generating…' : summary ? 'Re-run Summary' : 'Generate Summary'}
         </AppButton>

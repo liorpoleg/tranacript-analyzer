@@ -16,12 +16,15 @@ import SeasonJobsTab from '@/features/shows/components/pages/SeasonJobsTab/Seaso
 import SeasonChatTab from '@/features/shows/components/pages/SeasonChatTab/SeasonChatTab';
 import EpisodePage from '@/features/episodes/components/pages/EpisodePage/EpisodePage';
 import SummaryTablePage from '@/features/shows/components/pages/SummaryTablePage/SummaryTablePage';
+import ChatHubPage from '@/features/chat/components/pages/ChatHubPage/ChatHubPage';
+import JobsListPage from '@/features/processing/components/pages/JobsListPage/JobsListPage';
 import JobDetailPage from '@/features/processing/components/pages/JobDetailPage/JobDetailPage';
 import UsersPage from '@/features/admin/components/pages/UsersPage/UsersPage';
 import OrganizationsPage from '@/features/admin/components/pages/OrganizationsPage/OrganizationsPage';
 import AuditLogsPage from '@/features/admin/components/pages/AuditLogsPage/AuditLogsPage';
 import SessionsPage from '@/features/admin/components/pages/SessionsPage/SessionsPage';
 import ApiKeysPage from '@/features/admin/components/pages/ApiKeysPage/ApiKeysPage';
+import NotFoundPage from '@/core/components/pages/NotFoundPage/NotFoundPage';
 import { ROUTES } from '@/core/constants/routes';
 import ToastProvider from '@/core/contexts/ToastContext';
 
@@ -61,6 +64,8 @@ export default function App(): JSX.Element {
                   <Route path="chat" element={<SeasonChatTab />} />
                 </Route>
                 <Route path={ROUTES.EPISODE_DETAIL} element={<EpisodePage />} />
+                <Route path={ROUTES.CHAT} element={<ChatHubPage />} />
+                <Route path={ROUTES.JOBS} element={<JobsListPage />} />
                 <Route path={ROUTES.JOB_DETAIL} element={<JobDetailPage />} />
                 <Route path={ROUTES.USERS} element={<UsersPage />} />
                 <Route path={ROUTES.ORGANIZATIONS} element={<OrganizationsPage />} />
@@ -68,6 +73,7 @@ export default function App(): JSX.Element {
                 <Route path={ROUTES.SESSIONS} element={<SessionsPage />} />
                 <Route path={ROUTES.API_KEYS} element={<ApiKeysPage />} />
                 <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+                <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </ProtectedRoute>
           }
