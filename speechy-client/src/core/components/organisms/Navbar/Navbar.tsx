@@ -4,15 +4,18 @@ import {
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { SquaresFour, BookOpen, SignOut, Key, CaretDown, MagnifyingGlass, List as ListIcon } from '@phosphor-icons/react';
+import { useNavigate, useLocation, useMatch } from 'react-router-dom';
+import {
+  SquaresFour, BookOpen, ChatCircleDots, SlidersHorizontal, Gear, SignOut, Key, CaretDown,
+  MagnifyingGlass, List as ListIcon,
+} from '@phosphor-icons/react';
 import { useAuth } from '@/core/hooks/useAuth';
 import { useLogout } from '@/core/services/auth';
 import { useShows, useShowSearch } from '@/features/shows/services/shows';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import HighlightedText from '@/core/components/atoms/HighlightedText/HighlightedText';
 import { ROUTES, buildRoute } from '@/core/constants/routes';
-import logo from '@/assets/logo2.png';
+import appIcon from '@/assets/brand/app-icon.png';
 import styles from './Navbar.module.css';
 
 interface NavLink {
@@ -24,9 +27,19 @@ interface NavLink {
 const NAV_LINKS: NavLink[] = [
   { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: <SquaresFour size={16} weight="fill" /> },
   { label: 'Shows', path: ROUTES.SHOWS, icon: <BookOpen size={16} weight="fill" /> },
+  { label: 'Chat', path: ROUTES.CHAT, icon: <ChatCircleDots size={16} weight="fill" /> },
 ];
 
-const AVATAR_COLORS = ['#2196f3', '#0288d1', '#0277bd', '#01579b', '#006db3', '#4fc3f7'];
+const MANAGEMENT_LINKS: NavLink[] = [
+  { label: 'Jobs', path: ROUTES.JOBS, icon: <SlidersHorizontal size={15} /> },
+  { label: 'Users', path: ROUTES.USERS, icon: <SlidersHorizontal size={15} /> },
+  { label: 'Organizations', path: ROUTES.ORGANIZATIONS, icon: <SlidersHorizontal size={15} /> },
+  { label: 'Audit Logs', path: ROUTES.AUDIT_LOGS, icon: <SlidersHorizontal size={15} /> },
+  { label: 'Sessions', path: ROUTES.SESSIONS, icon: <SlidersHorizontal size={15} /> },
+  { label: 'API Keys', path: ROUTES.API_KEYS, icon: <SlidersHorizontal size={15} /> },
+];
+
+const AVATAR_COLORS = ['#2F6277', '#4C8599', '#5FC9CC', '#91E9EB', '#A9DBB8', '#6FA8B5'];
 
 function getAvatarColor(name = ''): string {
   return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
@@ -39,9 +52,24 @@ export default function Navbar(): JSX.Element {
   const logout = useLogout();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [navAnchor, setNavAnchor] = useState<HTMLElement | null>(null);
+  const [managementAnchor, setManagementAnchor] = useState<HTMLElement | null>(null);
+  const managementActive = MANAGEMENT_LINKS.some((l) => location.pathname.startsWith(l.path));
 
   const { data: shows } = useShows();
-  const [selectedShowId, setSelectedShowId] = useState('');
+  const showDetailMatch = useMatch(ROUTES.SHOW_DETAIL);
+  const currentShowId =
+    showDetailMatch?.params.id && showDetailMatch.params.id !== 'new'
+      ? showDetailMatch.params.id
+      : undefined;
+  const [selectedShowId, setSelectedShowId] = useState(currentShowId ?? '');
+  // Default the search scope to whatever show page you're on — re-syncs each
+  // time you navigate to a (different) show, but doesn't fight a manual
+  // re-selection made while staying on the same page.
+  useEffect(() => {
+    if (currentShowId) {
+      setSelectedShowId(currentShowId);
+    }
+  }, [currentShowId]);
   const [query, setQuery] = useState('');
   const [resultsOpen, setResultsOpen] = useState(false);
   const debouncedQuery = useDebounce(query, 300);
@@ -93,8 +121,10 @@ export default function Navbar(): JSX.Element {
   return (
     <AppBar position="sticky" color="inherit" elevation={0} className={styles.appBar}>
       <Toolbar className={styles.toolbar}>
+        <Box className={styles.leftGroup}>
         <Box onClick={() => navigate(ROUTES.DASHBOARD)} className={styles.logoWrapper}>
-          <Box component="img" src={logo} alt="Speechy" className={styles.logoImg} />
+          <Box component="img" src={appIcon} alt="" className={styles.logoImg} />
+          <Typography variant="h3" className={styles.wordmark}>speechy</Typography>
         </Box>
 
         <IconButton
@@ -106,6 +136,19 @@ export default function Navbar(): JSX.Element {
         </IconButton>
         <Menu open={Boolean(navAnchor)} anchorEl={navAnchor} onClose={() => setNavAnchor(null)}>
           {NAV_LINKS.map((link) => (
+            <MenuItem
+              key={link.path}
+              selected={location.pathname.startsWith(link.path)}
+              onClick={() => { navigate(link.path); setNavAnchor(null); }}
+              className={styles.mobileMenuItem}
+            >
+              {link.icon}
+              <Typography variant="body2" fontWeight={600}>{link.label}</Typography>
+            </MenuItem>
+          ))}
+          <Divider />
+          <Typography variant="overline" className={styles.mobileMenuLabel}>Management</Typography>
+          {MANAGEMENT_LINKS.map((link) => (
             <MenuItem
               key={link.path}
               selected={location.pathname.startsWith(link.path)}
@@ -134,6 +177,7 @@ export default function Navbar(): JSX.Element {
               </Box>
             );
           })}
+        </Box>
         </Box>
 
         <Box className={styles.searchWrapper}>
@@ -215,7 +259,35 @@ export default function Navbar(): JSX.Element {
           </ClickAwayListener>
         </Box>
 
-        <Box className={styles.spacer} />
+        <Box className={styles.rightGroup}>
+        <IconButton
+          onClick={(e: React.MouseEvent<HTMLElement>) => setManagementAnchor(e.currentTarget)}
+          className={`${styles.settingsButton} ${managementActive ? styles.settingsButtonActive : ''}`.trim()}
+          aria-label="Management"
+        >
+          <Gear size={19} weight={managementActive ? 'fill' : 'regular'} />
+        </IconButton>
+        <Menu
+          open={Boolean(managementAnchor)}
+          anchorEl={managementAnchor}
+          onClose={() => setManagementAnchor(null)}
+          PaperProps={{ elevation: 0, className: styles.userMenuPaper }}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          <Typography variant="overline" className={styles.mobileMenuLabel}>Management</Typography>
+          {MANAGEMENT_LINKS.map((link) => (
+            <MenuItem
+              key={link.path}
+              selected={location.pathname.startsWith(link.path)}
+              onClick={() => { navigate(link.path); setManagementAnchor(null); }}
+              className={styles.menuItem}
+            >
+              {link.icon}
+              <Typography variant="body2" fontWeight={600}>{link.label}</Typography>
+            </MenuItem>
+          ))}
+        </Menu>
 
         <Box onClick={(e: React.MouseEvent<HTMLDivElement>) => setAnchor(e.currentTarget)} className={styles.userMenuTrigger}>
           <Avatar className={styles.avatar} style={{ '--avatar-color': avatarColor } as React.CSSProperties}>
@@ -228,6 +300,7 @@ export default function Navbar(): JSX.Element {
             </Typography>
           </Box>
           <CaretDown size={14} color="#94A3B8" />
+        </Box>
         </Box>
 
         <Menu

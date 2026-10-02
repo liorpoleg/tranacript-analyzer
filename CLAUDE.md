@@ -91,6 +91,17 @@ Question
   season FK (nullable)
   text, order_index, is_active
 
+ShowMembership            ← added 2026-10; not in the original spec above.
+  show FK, user FK, role ENUM (OWNER | EDITOR | VIEWER)
+  unique_together (show, user)
+  NOTE: the actual Show/Season model is now a single self-referential recursive
+  Show (a "season" is just a Show with `parent` set — see speechy-server/.claude/CLAUDE.md,
+  which supersedes the Show→Season→EpisodeSeason hierarchy described in §4 above).
+  Per-node membership with inheritance + override (a node with no rows inherits
+  from its nearest ancestor that has any; a node with its own rows replaces,
+  does not merge with, its ancestor's). Org ADMIN users are implicit owners
+  everywhere in their org. Full detail: speechy-server/.claude/CLAUDE.md "Permissions".
+
 ProcessingJob
   episode FK
   job_type ENUM (TRANSLATE | SUMMARIZE | CONTEXTUAL_SUMMARY)
@@ -319,6 +330,11 @@ GET    /api/episodes/{id}/contextual-summaries/  # user's contextual summaries
 
 DELETE /api/questions/{id}/
 DELETE /api/knowledge/{id}/
+
+GET    /api/shows/{id}/members/             # added 2026-10, see Permissions in speechy-server/.claude/CLAUDE.md
+POST   /api/shows/{id}/members/
+PATCH  /api/shows/{id}/members/{member_id}/
+DELETE /api/shows/{id}/members/{member_id}/
 
 GET    /api/jobs/
 GET    /api/jobs/{id}/

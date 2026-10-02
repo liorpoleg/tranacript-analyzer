@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Show
+from .models import Show, ShowMembership
 
 
 class ShowSerializer(serializers.ModelSerializer):
@@ -7,6 +7,7 @@ class ShowSerializer(serializers.ModelSerializer):
     direct_children_count = serializers.SerializerMethodField()
     episode_count = serializers.SerializerMethodField()
     root_id = serializers.SerializerMethodField()
+    my_role = serializers.SerializerMethodField()
     organization_name = serializers.CharField(source='organization.name', read_only=True)
 
     class Meta:
@@ -14,9 +15,16 @@ class ShowSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'description', 'organization', 'organization_name', 'parent',
             'root_id', 'is_active', 'direct_episode_count', 'direct_children_count',
-            'episode_count', 'created_at', 'updated_at',
+            'episode_count', 'my_role', 'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'organization', 'created_at', 'updated_at']
+
+    def get_my_role(self, obj):
+        request = self.context.get('request')
+        if request is None:
+            return None
+        from .permissions import get_effective_role
+        return get_effective_role(request.user, obj)
 
     def get_direct_episode_count(self, obj):
         counts = self.context.get('recursive_counts')
@@ -66,3 +74,19 @@ class ShowDetailSerializer(ShowSerializer):
 
     class Meta(ShowSerializer.Meta):
         fields = ShowSerializer.Meta.fields + ['children']
+
+
+class ShowMembershipSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.CharField(source='user.email', read_only=True)
+    created_by_username = serializers.CharField(
+        source='created_by.username', read_only=True, default=None
+    )
+
+    class Meta:
+        model = ShowMembership
+        fields = [
+            'id', 'show', 'user', 'username', 'email', 'role',
+            'created_at', 'created_by', 'created_by_username',
+        ]
+        read_only_fields = ['id', 'show', 'created_at', 'created_by', 'created_by_username']

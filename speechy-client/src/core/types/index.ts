@@ -1,4 +1,5 @@
 export type UserRole = 'admin' | 'manager' | 'analyst';
+export type ShowRole = 'owner' | 'editor' | 'viewer';
 export type JobStatus = 'pending' | 'running' | 'completed' | 'failed' | 'stopped';
 export type JobType = 'translate' | 'summarize' | 'contextual_summary';
 export type Language = 'he' | 'en';
@@ -39,12 +40,27 @@ export interface Show {
   direct_episode_count: number;
   direct_children_count: number;
   episode_count: number;
+  my_role: ShowRole | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface ShowDetail extends Show {
   children: Show[];
+}
+
+export interface ShowMember {
+  id: string;
+  show: string;
+  user: string;
+  username: string;
+  email: string;
+  role: ShowRole;
+  created_at: string;
+  created_by: string | null;
+  created_by_username: string | null;
+  inherited: boolean;
+  inherited_from_show_name: string | null;
 }
 
 // A "season" is just a Show whose `parent` is set — there is no separate
@@ -73,6 +89,7 @@ export interface Episode {
   has_translation_he: boolean;
   has_summary?: boolean;
   brief_summary?: string;
+  my_role: ShowRole | null;
   show_memberships: Array<{
     show: string;
     name: string;

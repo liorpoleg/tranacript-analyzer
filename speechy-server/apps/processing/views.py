@@ -1,19 +1,28 @@
 from celery.result import AsyncResult
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import ProcessingJob, JobStatus, TERMINAL_STATUSES
 from .serializers import ProcessingJobSerializer
-from apps.shows.services import get_recursive_episode_ids
+from apps.shows.services import get_shows_for_user, get_recursive_episode_ids_for_user
+from apps.shows.permissions import IsEpisodeEditorOrAbove
 
 
 class ProcessingJobViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ProcessingJobSerializer
 
+    def get_permissions(self):
+        if self.action == 'stop':
+            return [IsAuthenticated(), IsEpisodeEditorOrAbove()]
+        return [IsAuthenticated()]
+
     def get_queryset(self):
+        from apps.episodes.services import get_episodes_for_user
         return ProcessingJob.objects.filter(
-            episode__primary_show__organization=self.request.user.organization
+            episode__in=get_episodes_for_user(self.request.user)
         ).select_related('episode', 'triggered_by')
 
     def list(self, request, *args, **kwargs):
@@ -23,7 +32,8 @@ class ProcessingJobViewSet(viewsets.ReadOnlyModelViewSet):
         if episode_id:
             qs = qs.filter(episode_id=episode_id)
         if show_id:
-            qs = qs.filter(episode_id__in=get_recursive_episode_ids(show_id))
+            show = get_object_or_404(get_shows_for_user(request.user), pk=show_id)
+            qs = qs.filter(episode_id__in=get_recursive_episode_ids_for_user(request.user, show))
         return Response({'data': ProcessingJobSerializer(qs, many=True).data, 'error': None})
 
     def retrieve(self, request, *args, **kwargs):

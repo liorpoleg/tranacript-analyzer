@@ -1,0 +1,23 @@
+.filterCard {
+  margin-bottom: 20px;
+}
+
+.filterContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px !important;
+}
+
+.statusSelect {
+  min-width: 180px;
+}
+
+.listContent {
+  padding: 8px !important;
+}
+
+.centeredState {
+  padding: 48px;
+  text-align: center;
+}

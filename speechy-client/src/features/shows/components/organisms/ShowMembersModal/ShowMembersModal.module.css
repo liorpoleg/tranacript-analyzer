@@ -1,0 +1,28 @@
+.inheritedNotice {
+  margin-top: 16px;
+}
+
+.addRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.userSelect {
+  flex: 1;
+  min-width: 0;
+}
+
+.roleSelect {
+  width: 140px;
+  flex-shrink: 0;
+}
+
+.roleChip {
+  pointer-events: none;
+}
+
+.lockIcon {
+  color: var(--color-text-secondary);
+}

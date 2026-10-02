@@ -2,14 +2,17 @@ import re
 import openpyxl
 from datetime import datetime
 from django.db import transaction
+from django.db.models import Q
 
 from .models import Episode, EpisodeShow, Transcript, Character, TranscriptLanguage
 
 
 def get_episodes_for_user(user):
+    from apps.shows.permissions import get_visible_show_ids_for_user
+    visible_ids = get_visible_show_ids_for_user(user)
     return Episode.objects.filter(
-        primary_show__organization=user.organization
-    ).select_related('primary_show', 'summary').prefetch_related(
+        Q(primary_show_id__in=visible_ids) | Q(shows__id__in=visible_ids)
+    ).distinct().select_related('primary_show', 'summary').prefetch_related(
         'transcripts', 'characters', 'episodeshow_set__show'
     )
 

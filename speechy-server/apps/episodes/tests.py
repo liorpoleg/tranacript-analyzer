@@ -6,7 +6,7 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from apps.users.models import Organization, User
-from apps.shows.models import Show
+from apps.shows.models import Show, ShowMembership, ShowRole
 from apps.episodes.models import Character, Episode, EpisodeShow, Transcript, TranscriptLanguage
 from apps.episodes.services import parse_episode_excel, parse_show_excel
 
@@ -26,6 +26,10 @@ def make_user(org, username='tester'):
 
 def make_show(org, name='Test Show'):
     return Show.objects.create(name=name, organization=org)
+
+
+def make_membership(show, user, role=ShowRole.OWNER):
+    return ShowMembership.objects.create(show=show, user=user, role=role)
 
 
 def make_season(show, name='Season 1'):
@@ -225,6 +229,7 @@ class EpisodeUploadAPITest(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
         self.show = make_show(self.org)
+        make_membership(self.show, self.user, ShowRole.EDITOR)
         self.episode = make_episode(self.show)
 
     def _file(self):
@@ -270,6 +275,7 @@ class ShowUploadAPITest(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
         self.show = make_show(self.org)
+        make_membership(self.show, self.user, ShowRole.EDITOR)
         self.season = make_season(self.show)
 
     def _file(self):

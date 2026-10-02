@@ -5,12 +5,31 @@ SEARCH_RESULT_LIMIT = 50
 
 
 def get_shows_for_user(user):
-    return Show.objects.filter(organization=user.organization).select_related('organization')
+    from .permissions import get_visible_show_ids_for_user
+    return Show.objects.filter(
+        id__in=get_visible_show_ids_for_user(user)
+    ).select_related('organization')
 
 
 def create_show(user, data: dict) -> Show:
     data.setdefault('organization', user.organization)
     return Show.objects.create(**data)
+
+
+def search_shows_by_name(user, query: str) -> list:
+    """Shows anywhere in the user's organization whose name matches the query,
+    regardless of depth in the tree — backs the sidebar's backend-driven search
+    (kept server-side, rather than filtering an already-fetched tree client-side,
+    so it composes with future pagination/infinite-scroll)."""
+    from .permissions import get_visible_show_ids_for_user
+    query = (query or '').strip()
+    if not query:
+        return []
+    return list(
+        Show.objects.filter(id__in=get_visible_show_ids_for_user(user), name__icontains=query)
+        .select_related('organization', 'parent')
+        .order_by('name')[:SEARCH_RESULT_LIMIT]
+    )
 
 
 def get_descendant_ids(show_id) -> list:
@@ -99,6 +118,17 @@ def get_recursive_episode_ids(show_id) -> list:
     )
 
 
+def get_recursive_episode_ids_for_user(user, show) -> list:
+    """Same as get_recursive_episode_ids, but descendants the user can't see
+    (an overriding membership excludes them) are dropped from the expansion."""
+    from apps.episodes.models import EpisodeShow
+    from .permissions import get_visible_descendant_ids
+    ids = [show.id, *get_visible_descendant_ids(user, show)]
+    return list(
+        EpisodeShow.objects.filter(show_id__in=ids).values_list('episode_id', flat=True).distinct()
+    )
+
+
 def get_root_counts_for_user(user) -> dict:
     """Batched recursive episode_count for every root show a user can see, in one query
     (avoids N+1 across the shows list / dashboard)."""
@@ -124,13 +154,14 @@ def get_root_counts_for_user(user) -> dict:
         return {str(root_id): {'episode_count': count} for root_id, count in cursor.fetchall()}
 
 
-def search_show(show: Show, query: str) -> list:
+def search_show(user, show: Show, query: str) -> list:
     """Search a show's transcripts (all languages) by phrase, its characters via '@', or episode tags via '#'.
-    Recursive — includes episodes of every descendant node, not just this one."""
+    Recursive — includes episodes of every descendant node the user can see, not just this one."""
+    from .permissions import get_visible_descendant_ids
     query = (query or '').strip()
     if not query:
         return []
-    show_ids = [show.id, *get_descendant_ids(show.id)]
+    show_ids = [show.id, *get_visible_descendant_ids(user, show)]
     if query.startswith('@'):
         return _search_show_characters(show_ids, query[1:].strip())
     if query.startswith('#'):

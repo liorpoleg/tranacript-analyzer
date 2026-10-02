@@ -10,7 +10,7 @@
 
 .row:hover {
   border-color: var(--color-primary-light);
-  background: #e3f2fd;
+  background: var(--color-bg-sidebar);
   transform: translateY(-1px);
 }
 

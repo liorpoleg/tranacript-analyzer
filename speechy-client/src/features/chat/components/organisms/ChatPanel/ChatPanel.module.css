@@ -96,13 +96,13 @@
 .sourceChip {
   font-size: 0.7rem;
   height: 22px;
-  background: #e3f2fd;
+  background: var(--color-bg-sidebar);
   color: var(--color-primary-dark);
   text-decoration: none;
 }
 
 .sourceChip:hover {
-  background: #bbdefb;
+  background: #BFE8EA;
 }
 
 .sourceChip :global(.MuiChip-icon) {

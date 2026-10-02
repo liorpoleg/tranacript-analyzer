@@ -12,7 +12,7 @@ interface KnowledgeFileItemProps {
 export default function KnowledgeFileItem({ file, onDelete }: KnowledgeFileItemProps): JSX.Element {
   return (
     <Box className={styles.row}>
-      <FileText size={18} color="#2196f3" />
+      <FileText size={18} color="#2F6277" />
       <Box className={styles.info}>
         <Typography fontWeight={600} noWrap variant="body2">{file.original_filename}</Typography>
         <Typography variant="caption" color="text.secondary">{formatDate(file.created_at)}</Typography>

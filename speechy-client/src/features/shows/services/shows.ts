@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import client from '@/core/services/client';
 import { API } from '@/core/constants/api';
-import type { Show, ShowDetail, SearchResult } from '@/core/types';
+import type { Show, ShowDetail, SearchResult, ShowMember } from '@/core/types';
 
 export interface ShowTreeNode {
   id: string;
@@ -90,6 +90,54 @@ export function useCreateChildShow(showId: string | undefined) {
       qc.invalidateQueries({ queryKey: ['show', showId] });
       qc.invalidateQueries({ queryKey: ['shows'] });
     },
+  });
+}
+
+// Backend-driven name search across the whole org's show tree (any depth) —
+// backs the sidebar search box. Deliberately not a client-side filter of the
+// already-fetched tree, so it composes with future pagination/infinite-scroll.
+export function useShowNameSearch(query: string) {
+  const trimmed = query.trim();
+  return useQuery<Show[], Error>({
+    queryKey: ['show-name-search', trimmed],
+    queryFn: () =>
+      client.get(API.SHOWS, { params: { search: trimmed } }).then((r) => r.data.data),
+    enabled: trimmed.length > 0,
+    staleTime: 10_000,
+  });
+}
+
+export function useShowMembers(showId: string | undefined) {
+  return useQuery<ShowMember[], Error>({
+    queryKey: ['show-members', showId],
+    queryFn: () => client.get(API.SHOW_MEMBERS(showId as string)).then((r) => r.data.data),
+    enabled: !!showId,
+  });
+}
+
+export function useAddShowMember(showId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation<ShowMember, Error, { user: string; role: string }>({
+    mutationFn: (data) =>
+      client.post(API.SHOW_MEMBERS(showId as string), data).then((r) => r.data.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['show-members', showId] }),
+  });
+}
+
+export function useUpdateShowMemberRole(showId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation<ShowMember, Error, { memberId: string; role: string }>({
+    mutationFn: ({ memberId, role }) =>
+      client.patch(API.SHOW_MEMBER(showId as string, memberId), { role }).then((r) => r.data.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['show-members', showId] }),
+  });
+}
+
+export function useRemoveShowMember(showId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation<unknown, Error, string>({
+    mutationFn: (memberId: string) => client.delete(API.SHOW_MEMBER(showId as string, memberId)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['show-members', showId] }),
   });
 }
 

@@ -16,7 +16,7 @@ export default function FilesTab({ episode }: FilesTabProps): JSX.Element {
           <Typography fontWeight={700} className={styles.sectionTitle}>Uploaded Files</Typography>
           {episode.has_origin_transcript ? (
             <Box className={styles.fileRow}>
-              <FileXls size={20} color="#2196f3" />
+              <FileXls size={20} color="#2F6277" />
               <Box>
                 <Typography fontWeight={600} variant="body2">Origin Transcript</Typography>
                 <Typography variant="caption" color="text.secondary">Parsed from uploaded Excel</Typography>

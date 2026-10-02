@@ -19,11 +19,11 @@
 
 .tabActive {
   font-weight: 700;
-  background: #e3f2fd;
+  background: var(--color-bg-sidebar);
   color: var(--color-primary);
 }
 
 .tabActive:hover {
-  background: #e3f2fd;
+  background: var(--color-bg-sidebar);
   color: var(--color-primary);
 }

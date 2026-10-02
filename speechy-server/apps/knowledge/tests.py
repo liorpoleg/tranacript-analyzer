@@ -1,8 +1,10 @@
+import io
 import tempfile
 from django.test import TestCase
+from rest_framework.test import APIClient
 
 from apps.users.models import Organization, User
-from apps.shows.models import Show
+from apps.shows.models import Show, ShowMembership, ShowRole
 from apps.episodes.models import Episode, EpisodeShow
 from apps.knowledge.models import KnowledgeFile, Question
 from apps.knowledge.services import (
@@ -148,3 +150,43 @@ class GetQuestionsForEpisodeTest(TestCase):
         Question.objects.all().delete()
         questions = get_questions_for_episode(self.episode)
         self.assertEqual(questions, [])
+
+
+class ShowKnowledgeAndQuestionsPermissionAPITest(TestCase):
+    """Viewers are explicitly allowed to add research questions/knowledge files —
+    the one carve-out from otherwise view-only access."""
+
+    def setUp(self):
+        org = Organization.objects.create(name='Test Org', slug='test-org-perm')
+        self.show = Show.objects.create(organization=org, name='Show')
+        self.viewer = User.objects.create_user(
+            username='viewer', email='viewer@example.com', password='pass123', organization=org,
+        )
+        ShowMembership.objects.create(show=self.show, user=self.viewer, role=ShowRole.VIEWER)
+        self.outsider = User.objects.create_user(
+            username='outsider', email='outsider@example.com', password='pass123', organization=org,
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.viewer)
+
+    def test_viewer_can_add_question(self):
+        resp = self.client.post(f'/api/shows/{self.show.id}/questions/', {'text': 'Who is this?'})
+        self.assertEqual(resp.status_code, 201)
+
+    def test_viewer_can_add_knowledge_file(self):
+        f = io.BytesIO(b'some background text')
+        f.name = 'notes.txt'
+        resp = self.client.post(f'/api/shows/{self.show.id}/knowledge/', {'file': f}, format='multipart')
+        self.assertEqual(resp.status_code, 201)
+
+    def test_viewer_cannot_upload_episode_excel(self):
+        f = io.BytesIO(b'not a real xlsx')
+        f.name = 'eps.xlsx'
+        resp = self.client.post(f'/api/shows/{self.show.id}/upload/', {'file': f}, format='multipart')
+        self.assertEqual(resp.status_code, 403)
+
+    def test_outsider_gets_404_listing_questions(self):
+        client = APIClient()
+        client.force_authenticate(user=self.outsider)
+        resp = client.get(f'/api/shows/{self.show.id}/questions/')
+        self.assertEqual(resp.status_code, 404)

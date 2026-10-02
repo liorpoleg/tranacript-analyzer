@@ -16,6 +16,8 @@ export const API = {
   SHOW_KNOWLEDGE: (id: string): string => `${BASE}/shows/${id}/knowledge/`,
   SHOW_SEARCH: (id: string): string => `${BASE}/shows/${id}/search/`,
   SHOW_UPLOAD: (id: string): string => `${BASE}/shows/${id}/upload/`,
+  SHOW_MEMBERS: (id: string): string => `${BASE}/shows/${id}/members/`,
+  SHOW_MEMBER: (showId: string, memberId: string): string => `${BASE}/shows/${showId}/members/${memberId}/`,
   EPISODES: `${BASE}/episodes/`,
   EPISODE: (id: string): string => `${BASE}/episodes/${id}/`,
   EPISODE_UPLOAD: (id: string): string => `${BASE}/episodes/${id}/upload/`,

@@ -73,7 +73,7 @@ export default function TranslateTab({ episode }: TranslateTabProps): JSX.Elemen
             size="small"
             startIcon={<ArrowClockwise size={15} />}
             loading={isRunning}
-            disabled={!episode.has_origin_transcript}
+            disabled={!episode.has_origin_transcript || !(episode.my_role === 'owner' || episode.my_role === 'editor')}
             onClick={handleRerun}
           >
             {isRunning ? 'Translating…' : 'Re-run'}

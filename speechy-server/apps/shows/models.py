@@ -59,3 +59,31 @@ class Show(models.Model):
         while node.parent_id:
             node = node.parent
         return node
+
+
+class ShowRole(models.TextChoices):
+    OWNER = 'owner', 'Owner'
+    EDITOR = 'editor', 'Editor'
+    VIEWER = 'viewer', 'Viewer'
+
+
+class ShowMembership(models.Model):
+    """Per-node membership grant. A node with no rows of its own inherits from
+    the nearest ancestor that has any (see apps.shows.permissions) — rows never
+    merge across ancestors, the nearest node with any rows wins outright."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    show = models.ForeignKey(Show, on_delete=models.CASCADE, related_name='memberships')
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='show_memberships')
+    role = models.CharField(max_length=20, choices=ShowRole.choices, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        'users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
+    )
+
+    class Meta:
+        unique_together = ['show', 'user']
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f'{self.user} — {self.role} on {self.show}'
