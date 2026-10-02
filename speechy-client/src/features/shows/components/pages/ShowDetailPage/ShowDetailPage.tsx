@@ -10,7 +10,7 @@ import ShowChatWindow from '@/features/shows/components/organisms/ShowChatWindow
 import ShowMembersModal from '@/features/shows/components/organisms/ShowMembersModal/ShowMembersModal';
 import EpisodeTable from '@/features/shows/components/organisms/EpisodeTable/EpisodeTable';
 import { useShow, useShowChildren, useCreateChildShow } from '@/features/shows/services/shows';
-import { useShowEpisodes, useShowUpload } from '@/features/episodes/services/episodes';
+import { useShowEpisodesInfinite, useShowUpload } from '@/features/episodes/services/episodes';
 import { useShowQuestions } from '@/features/knowledge/services/questions';
 import { useShowKnowledge } from '@/features/knowledge/services/knowledge';
 import { useToast } from '@/core/contexts/ToastContext';
@@ -30,7 +30,12 @@ export default function ShowDetailPage(): JSX.Element {
   const toast = useToast();
   const { data: show, isLoading } = useShow(id);
   const { data: seasons = [], isLoading: seasonsLoading } = useShowChildren(id);
-  const { data: episodes = [], isLoading: episodesLoading } = useShowEpisodes(id);
+  const {
+    data: episodePages, isLoading: episodesLoading,
+    hasNextPage, isFetchingNextPage, fetchNextPage,
+  } = useShowEpisodesInfinite(id);
+  const episodes = episodePages?.pages.flatMap((p) => p.episodes) ?? [];
+  const episodesTotalCount = episodePages?.pages[0]?.count;
   const { data: questions = [], isLoading: questionsLoading } = useShowQuestions(id);
   const { data: knowledge = [], isLoading: knowledgeLoading } = useShowKnowledge(id);
   const createSeason = useCreateChildShow(id);
@@ -40,6 +45,7 @@ export default function ShowDetailPage(): JSX.Element {
   const [chatOpen, setChatOpen] = useState<boolean>(false);
   const [membersModal, setMembersModal] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<ShowDetailTab>('episodes');
+  const [scrollParent, setScrollParent] = useState<HTMLDivElement | null>(null);
 
   usePageTitle(show?.name);
 
@@ -114,7 +120,7 @@ export default function ShowDetailPage(): JSX.Element {
           </Button>
         </Box>
 
-        <Box className={styles.content}>
+        <Box className={styles.content} ref={setScrollParent}>
           {activeTab === 'episodes' && (
             <>
               {!seasonsLoading && !episodesLoading && seasons.length === 0 && episodes.length === 0 && (
@@ -148,6 +154,11 @@ export default function ShowDetailPage(): JSX.Element {
                   episodes={episodes}
                   isLoading={episodesLoading}
                   onOpen={(ep) => navigate(buildRoute.episode(ep.id))}
+                  totalCount={episodesTotalCount}
+                  hasNextPage={hasNextPage}
+                  isFetchingNextPage={isFetchingNextPage}
+                  onEndReached={() => fetchNextPage()}
+                  scrollParent={scrollParent}
                 />
               )}
             </>

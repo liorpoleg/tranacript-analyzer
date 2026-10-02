@@ -1,5 +1,21 @@
+.item {
+  border-bottom: 1px solid var(--color-divider);
+}
+
+/* Mirrors EpisodeTable.module.css's .header grid template exactly — kept as a
+   literal duplicate rather than a shared import, since CSS Modules can't share
+   a template across files without a non-obvious build-level indirection. */
 .row {
+  display: grid;
+  grid-template-columns: 7% 15% 9% 20% 9% 8% 1fr 2.5rem 2.5rem;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
   cursor: pointer;
+}
+
+.row:hover {
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .episodeNumberCell {
@@ -10,6 +26,9 @@
 
 .titleCell {
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .charactersWrap {
@@ -40,9 +59,7 @@
 
 .briefSummaryCell {
   white-space: normal;
-  vertical-align: top;
-  padding-top: 12px;
-  padding-bottom: 12px;
+  align-self: flex-start;
 }
 
 .briefSummaryText {
@@ -53,15 +70,9 @@
   overflow: hidden;
 }
 
-.detailCell {
-  padding: 0;
-  border: 0;
-}
-
 .detailPanel {
   padding: 24px;
   background: var(--color-bg-default);
-  border-bottom: 1px solid var(--color-divider);
 }
 
 .languageRow {

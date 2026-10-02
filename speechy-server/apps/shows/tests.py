@@ -320,3 +320,49 @@ class ShowMembersAPITest(TestCase):
         resp = client.get(f'/api/shows/{show.id}/')
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.data['data']['my_role'], 'owner')
+
+
+class ShowEpisodesPaginationAPITest(TestCase):
+    """GET /api/shows/{id}/episodes/ — pagination is opt-in (page/page_size
+    present) so existing full-list callers (chat episode selectors) are
+    unaffected by default."""
+
+    def setUp(self):
+        from apps.episodes.models import Episode, EpisodeShow
+
+        self.org = make_org()
+        self.user = make_user(self.org)
+        self.show = Show.objects.create(organization=self.org, name='Big Show')
+        ShowMembership.objects.create(show=self.show, user=self.user, role=ShowRole.OWNER)
+        for i in range(5):
+            ep = Episode.objects.create(primary_show=self.show, episode_number=str(i + 1), title=f'Ep {i + 1}')
+            EpisodeShow.objects.create(episode=ep, show=self.show)
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def test_no_page_param_returns_full_unpaginated_list(self):
+        resp = self.client.get(f'/api/shows/{self.show.id}/episodes/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.data['data']), 5)
+        self.assertNotIn('pagination', resp.data)
+
+    def test_page_param_returns_paginated_response(self):
+        resp = self.client.get(f'/api/shows/{self.show.id}/episodes/', {'page': 1, 'page_size': 2})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.data['data']), 2)
+        self.assertEqual(resp.data['pagination']['count'], 5)
+        self.assertIsNotNone(resp.data['pagination']['next'])
+
+    def test_page_size_param_alone_also_triggers_pagination(self):
+        resp = self.client.get(f'/api/shows/{self.show.id}/episodes/', {'page_size': 3})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.data['data']), 3)
+        self.assertIn('pagination', resp.data)
+
+    def test_include_descendants_full_list_unaffected_by_default(self):
+        resp = self.client.get(
+            f'/api/shows/{self.show.id}/episodes/', {'include_descendants': 'true'},
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.data['data']), 5)
+        self.assertNotIn('pagination', resp.data)

@@ -125,6 +125,13 @@ class ShowViewSet(viewsets.ModelViewSet):
             episodes = Episode.objects.filter(id__in=episode_ids).select_related('primary_show')
         else:
             episodes = show.cross_listed_episodes.all().select_related('primary_show')
+        # Pagination is opt-in (triggered by `page`/`page_size` being present) so existing
+        # callers that want the full flat list (the chat episode selectors) are unaffected.
+        if 'page' in request.query_params or 'page_size' in request.query_params:
+            page = self.paginate_queryset(episodes)
+            return self.get_paginated_response(
+                EpisodeSerializer(page, many=True, context={'request': request}).data
+            )
         return Response({
             'data': EpisodeSerializer(episodes, many=True, context={'request': request}).data,
             'error': None,

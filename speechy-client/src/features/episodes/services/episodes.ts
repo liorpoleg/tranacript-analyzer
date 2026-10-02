@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import client from '@/core/services/client';
 import { API } from '@/core/constants/api';
 import type {
@@ -30,6 +30,32 @@ export function useShowEpisodes(showId: string | undefined, includeDescendants =
           params: includeDescendants ? { include_descendants: 'true' } : {},
         })
         .then((r) => r.data.data),
+    enabled: !!showId,
+  });
+}
+
+interface EpisodesPage {
+  episodes: Episode[];
+  count: number;
+  next: string | null;
+}
+
+// Paginated/infinite-scroll version of useShowEpisodes, for the actual episode
+// table (ShowDetailPage/SeasonAccordion) — a show can have up to ~1M episodes,
+// so the table loads them in chunks as the user scrolls rather than all at once.
+// Pagination is opt-in server-side (triggered by page/page_size being sent),
+// so this is a separate hook from useShowEpisodes rather than a parameter on it —
+// the latter stays the "give me the full flat list" hook for selector UIs (chat).
+export function useShowEpisodesInfinite(showId: string | undefined, pageSize = 75) {
+  return useInfiniteQuery<EpisodesPage, Error>({
+    queryKey: ['show-episodes-infinite', showId, pageSize],
+    queryFn: async ({ pageParam = 1 }) => {
+      const r = await client.get(API.SHOW_EPISODES(showId as string), {
+        params: { page: pageParam, page_size: pageSize },
+      });
+      return { episodes: r.data.data, count: r.data.pagination.count, next: r.data.pagination.next };
+    },
+    getNextPageParam: (lastPage, allPages) => (lastPage.next ? allPages.length + 1 : undefined),
     enabled: !!showId,
   });
 }

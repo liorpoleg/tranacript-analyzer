@@ -4,7 +4,7 @@ import { Box, Typography, Button, Collapse, TextField } from '@mui/material';
 import { Plus, ChatCircleText, Upload, CaretDown, CaretRight } from '@phosphor-icons/react';
 import AppModal from '@/core/components/atoms/AppModal/AppModal';
 import EpisodeTable from '@/features/shows/components/organisms/EpisodeTable/EpisodeTable';
-import { useShowEpisodes, useShowUpload } from '@/features/episodes/services/episodes';
+import { useShowEpisodesInfinite, useShowUpload } from '@/features/episodes/services/episodes';
 import { useShowChildren, useCreateChildShow } from '@/features/shows/services/shows';
 import { useToast } from '@/core/contexts/ToastContext';
 import { buildRoute } from '@/core/constants/routes';
@@ -19,7 +19,12 @@ interface SeasonAccordionProps {
 export default function SeasonAccordion({ season, depth = 0 }: SeasonAccordionProps): JSX.Element {
   const navigate = useNavigate();
   const toast = useToast();
-  const { data: episodes = [], isLoading } = useShowEpisodes(season.id);
+  const {
+    data: episodePages, isLoading,
+    hasNextPage, isFetchingNextPage, fetchNextPage,
+  } = useShowEpisodesInfinite(season.id);
+  const episodes = episodePages?.pages.flatMap((p) => p.episodes) ?? [];
+  const episodesTotalCount = episodePages?.pages[0]?.count;
   const { data: subSeasons = [] } = useShowChildren(season.id);
   const createSubSeason = useCreateChildShow(season.id);
   const showUpload = useShowUpload(season.id);
@@ -109,6 +114,10 @@ export default function SeasonAccordion({ season, depth = 0 }: SeasonAccordionPr
               episodes={episodes}
               isLoading={isLoading}
               onOpen={(ep) => navigate(buildRoute.episode(ep.id))}
+              totalCount={episodesTotalCount}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              onEndReached={() => fetchNextPage()}
             />
           </Box>
         </Box>
