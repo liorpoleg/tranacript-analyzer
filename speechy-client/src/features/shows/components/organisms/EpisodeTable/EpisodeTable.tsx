@@ -27,6 +27,13 @@ interface EpisodeTableProps {
 
 const HEADERS = ['Ep #', 'Title', 'Air Date', 'Characters', 'Translations', 'Summary', 'Brief Summary', '', ''];
 
+// Below this many *known-complete* rows, virtualizing just imposes a fixed
+// viewport height for no reason (most of it empty) — render a plain stacked
+// list instead, sized to its actual content. Virtuoso only kicks in once
+// there's enough content to actually need a scrollable window, or more pages
+// are still fetchable (hasNextPage), in which case a fixed viewport is correct.
+const SMALL_LIST_THRESHOLD = 20;
+
 export default function EpisodeTable({
   episodes,
   isLoading = false,
@@ -66,6 +73,7 @@ export default function EpisodeTable({
   }
 
   const count = totalCount ?? episodes.length;
+  const isCompleteSmallList = !hasNextPage && count <= SMALL_LIST_THRESHOLD;
 
   return (
     <Card className={styles.card}>
@@ -74,37 +82,49 @@ export default function EpisodeTable({
         <Box role="row" className={styles.header}>
           {HEADERS.map((h, i) => <Box key={i} role="columnheader" className={styles.headerCell}>{h}</Box>)}
         </Box>
-        <Box className={`${styles.body} ${scrollParent ? '' : styles.standaloneHeight}`.trim()}>
-          <Virtuoso
-            customScrollParent={scrollParent ?? undefined}
-            style={scrollParent ? undefined : { height: '100%' }}
-            totalCount={count}
-            overscan={400}
-            endReached={hasNextPage ? onEndReached : undefined}
-            components={{
-              Footer: () =>
-                isFetchingNextPage ? (
-                  <Box className={styles.footerLoading}><CircularProgress size={18} /></Box>
-                ) : null,
-            }}
-            itemContent={(index) => {
-              const episode = episodes[index];
-              if (!episode) {
+        {isCompleteSmallList ? (
+          <Box className={styles.body}>
+            {episodes.map((episode) => (
+              <ExpandableEpisodeRow
+                key={episode.id}
+                episode={episode}
+                onOpen={onOpen ? () => onOpen(episode) : undefined}
+              />
+            ))}
+          </Box>
+        ) : (
+          <Box className={`${styles.body} ${scrollParent ? '' : styles.standaloneHeight}`.trim()}>
+            <Virtuoso
+              customScrollParent={scrollParent ?? undefined}
+              style={scrollParent ? undefined : { height: '100%' }}
+              totalCount={count}
+              overscan={400}
+              endReached={hasNextPage ? onEndReached : undefined}
+              components={{
+                Footer: () =>
+                  isFetchingNextPage ? (
+                    <Box className={styles.footerLoading}><CircularProgress size={18} /></Box>
+                  ) : null,
+              }}
+              itemContent={(index) => {
+                const episode = episodes[index];
+                if (!episode) {
+                  return (
+                    <Box className={styles.skeletonRow}>
+                      <Skeleton variant="rectangular" height={44} />
+                    </Box>
+                  );
+                }
                 return (
-                  <Box className={styles.skeletonRow}>
-                    <Skeleton variant="rectangular" height={44} />
-                  </Box>
+                  <ExpandableEpisodeRow
+                    episode={episode}
+                    onOpen={onOpen ? () => onOpen(episode) : undefined}
+                  />
                 );
-              }
-              return (
-                <ExpandableEpisodeRow
-                  episode={episode}
-                  onOpen={onOpen ? () => onOpen(episode) : undefined}
-                />
-              );
-            }}
-          />
-        </Box>
+              }}
+            />
+          </Box>
+        )}
       </Box>
     </Card>
   );
