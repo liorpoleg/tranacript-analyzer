@@ -118,6 +118,7 @@ export default function SeasonAccordion({ season, depth = 0 }: SeasonAccordionPr
               hasNextPage={hasNextPage}
               isFetchingNextPage={isFetchingNextPage}
               onEndReached={() => fetchNextPage()}
+              onExpand={() => navigate(buildRoute.showSummaryTable(season.id))}
             />
           </Box>
         </Box>

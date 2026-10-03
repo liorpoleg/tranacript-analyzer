@@ -1,5 +1,6 @@
 import { Virtuoso } from 'react-virtuoso';
-import { Box, Card, CircularProgress, Typography, Skeleton } from '@mui/material';
+import { Box, Card, CircularProgress, Typography, Skeleton, IconButton, Tooltip } from '@mui/material';
+import { ArrowsOut } from '@phosphor-icons/react';
 import ExpandableEpisodeRow from '../ExpandableEpisodeRow/ExpandableEpisodeRow';
 import type { Episode } from '@/core/types';
 import styles from './EpisodeTable.module.css';
@@ -19,6 +20,9 @@ interface EpisodeTableProps {
    * region) — when given, the list scrolls as part of that, no nested
    * scrollbar. Omit to let this table manage its own bounded-height scroll. */
   scrollParent?: HTMLElement | null;
+  /** Shows an expand icon button that navigates to the full-page table view.
+   * Omit on the full-page view itself. */
+  onExpand?: () => void;
 }
 
 const HEADERS = ['Ep #', 'Title', 'Air Date', 'Characters', 'Translations', 'Summary', 'Brief Summary', '', ''];
@@ -33,10 +37,20 @@ export default function EpisodeTable({
   isFetchingNextPage,
   onEndReached,
   scrollParent,
+  onExpand,
 }: EpisodeTableProps): JSX.Element {
+  const expandButton = onExpand && (
+    <Tooltip title="View full page">
+      <IconButton size="small" onClick={onExpand} className={styles.expandButton}>
+        <ArrowsOut size={15} />
+      </IconButton>
+    </Tooltip>
+  );
+
   if (isLoading) {
     return (
       <Card className={styles.card}>
+        {expandButton}
         <Box className={styles.spinnerWrap}><CircularProgress size={24} /></Box>
       </Card>
     );
@@ -45,6 +59,7 @@ export default function EpisodeTable({
   if (episodes.length === 0) {
     return (
       <Card className={styles.card}>
+        {expandButton}
         <Typography color="text.secondary" align="center" className={styles.emptyMessage}>{emptyMessage}</Typography>
       </Card>
     );
@@ -54,6 +69,7 @@ export default function EpisodeTable({
 
   return (
     <Card className={styles.card}>
+      {expandButton}
       <Box className={styles.scrollWrap}>
         <Box role="row" className={styles.header}>
           {HEADERS.map((h, i) => <Box key={i} role="columnheader" className={styles.headerCell}>{h}</Box>)}

@@ -5,7 +5,7 @@ import { MagnifyingGlass } from '@phosphor-icons/react';
 import TablePageLayout from '@/core/components/templates/TablePageLayout/TablePageLayout';
 import EpisodeTable from '@/features/shows/components/organisms/EpisodeTable/EpisodeTable';
 import { useShow, useShowTree, type ShowTreeNode } from '@/features/shows/services/shows';
-import { useEpisodes } from '@/features/episodes/services/episodes';
+import { useShowEpisodes } from '@/features/episodes/services/episodes';
 import { usePageTitle } from '@/core/hooks/usePageTitle';
 import type { Episode } from '@/core/types';
 import styles from './SummaryTablePage.module.css';
@@ -28,7 +28,11 @@ export default function SummaryTablePage(): JSX.Element {
   const { id } = useParams<{ id: string }>();
   const { data: show } = useShow(id);
   const { data: tree } = useShowTree(id);
-  const { data: episodes = [], isLoading } = useEpisodes(id);
+  // include_descendants=true: works for any node, not just a root show — a
+  // season's own episodes are cross-listed to it, never to its root's
+  // primary_show, so a plain primary_show-filtered fetch returns nothing
+  // for a season id.
+  const { data: episodes = [], isLoading } = useShowEpisodes(id, true);
   const [search, setSearch] = useState<string>('');
   const [seasonFilter, setSeasonFilter] = useState<string>('all');
 

@@ -159,6 +159,7 @@ export default function ShowDetailPage(): JSX.Element {
                   isFetchingNextPage={isFetchingNextPage}
                   onEndReached={() => fetchNextPage()}
                   scrollParent={scrollParent}
+                  onExpand={() => navigate(buildRoute.showSummaryTable(id!))}
                 />
               )}
             </>
